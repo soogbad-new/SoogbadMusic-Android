@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/constraintLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/darkBlue"
+        android:clipToPadding="false"
+        tools:context=".MainActivity">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/green"
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            app:title="SoogbadMusic"
+            app:titleTextColor="@color/white"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <include
+            android:id="@+id/include"
+            layout="@layout/content_main"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+
+        <com.xw.repo.BubbleSeekBar
+            android:id="@+id/volumeSeekBar"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:max="100"
+            app:bsb_hide_bubble="true"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="@id/shuffleButton"
+            app:layout_constraintBottom_toBottomOf="@id/shuffleButton" />
+
+        <ImageButton
+            android:id="@+id/shuffleButton"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginRight="30dp"
+            android:layout_marginTop="15dp"
+            android:onClick="onShuffleButtonClick"
+            android:scaleType="fitXY"
+            android:src="@drawable/shuffle_off"
+            android:background="@android:color/transparent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/toolbar" />
+
+        <ImageButton
+            android:id="@+id/filterButton"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginRight="30dp"
+            android:layout_marginTop="15dp"
+            android:onClick="onFilterButtonClick"
+            android:scaleType="fitXY"
+            android:src="@drawable/filter_on"
+            android:background="@android:color/transparent"
+            app:layout_constraintRight_toLeftOf="@id/shuffleButton"
+            app:layout_constraintTop_toBottomOf="@id/toolbar" />
+
+        <ImageView
+            android:id="@+id/albumCoverImageView"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:layout_marginLeft="15dp"
+            android:layout_marginTop="15dp"
+            android:scaleType="fitXY"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/shuffleButton" />
+
+        <TextView
+            android:id="@+id/songNameTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintLeft_toRightOf="@id/albumCoverImageView"
+            app:layout_constraintTop_toTopOf="@id/albumCoverImageView" />
+
+        <TextView
+            android:id="@+id/songInfoTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="5dp"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            app:layout_constraintLeft_toRightOf="@id/albumCoverImageView"
+            app:layout_constraintTop_toBottomOf="@id/songNameTextView" />
+
+
+        <ImageButton
+            android:id="@+id/previousButton"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginLeft="100dp"
+            android:layout_marginTop="20dp"
+            android:onClick="onPreviousButtonClick"
+            android:scaleType="fitXY"
+            android:src="@drawable/previous"
+            android:background="@android:color/transparent"
+            app:layout_constraintRight_toLeftOf="@+id/playPauseButton"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintHorizontal_chainStyle="spread_inside"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/albumCoverImageView" />
+
+        <ImageButton
+            android:id="@+id/playPauseButton"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginTop="19dp"
+            android:onClick="onPlayPauseButtonClick"
+            android:scaleType="fitXY"
+            android:src="@drawable/play"
+            android:background="@android:color/transparent"
+            app:layout_constraintRight_toLeftOf="@+id/nextButton"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintHorizontal_chainStyle="spread_inside"
+            app:layout_constraintLeft_toRightOf="@+id/previousButton"
+            app:layout_constraintTop_toBottomOf="@id/albumCoverImageView" />
+
+        <ImageButton
+            android:id="@+id/nextButton"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginRight="100dp"
+            android:layout_marginTop="20dp"
+            android:onClick="onNextButtonClick"
+            android:scaleType="fitXY"
+            android:src="@drawable/next"
+            android:background="@android:color/transparent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintHorizontal_chainStyle="spread_inside"
+            app:layout_constraintLeft_toRightOf="@+id/playPauseButton"
+            app:layout_constraintTop_toBottomOf="@id/albumCoverImageView" />
+
+
+        <TextView
+            android:id="@+id/currentTimeTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:layout_marginTop="5dp"
+            android:textColor="@color/white"
+            android:textSize="11sp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/playPauseButton" />
+
+        <TextView
+            android:id="@+id/durationTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="5dp"
+            android:layout_marginTop="5dp"
+            android:textColor="@color/white"
+            android:textSize="11sp"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/playPauseButton" />
+
+        <View
+            android:id="@+id/progressBarBackground"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginTop="5dp"
+            android:background="@color/black"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/currentTimeTextView" />
+
+        <View
+            android:id="@+id/progressBar"
+            android:layout_width="1dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="5dp"
+            android:background="@color/green"
+            android:visibility="invisible"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/currentTimeTextView" />
+
+        <com.soogbad.soogbadmusic.SongList
+            android:id="@+id/songList"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:scrollbars="vertical"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/progressBarBackground"
+            app:layout_constraintBottom_toTopOf="@id/searchEditText" />
+
+        <EditText
+            android:id="@+id/searchEditText"
+            android:layout_width="0pt"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            style="@style/Widget.AppCompat.EditText"
+            android:autoSizeTextType="uniform"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/green"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@id/advancedSearchButton"
+            app:layout_constraintTop_toBottomOf="@id/songList"
+            app:layout_constraintBottom_toTopOf="@id/keyboard_guideline" />
+
+        <ImageButton
+            android:id="@+id/advancedSearchButton"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_marginRight="5dp"
+            android:layout_marginLeft="5dp"
+            android:onClick="onAdvancedSearchButtonClick"
+            android:scaleType="fitXY"
+            android:src="@drawable/advanced_search_off"
+            android:background="@android:color/transparent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/searchEditText"
+            app:layout_constraintTop_toBottomOf="@id/songList"
+            app:layout_constraintBottom_toTopOf="@id/keyboard_guideline" />
+
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/keyboard_guideline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_end="0dp" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</FrameLayout>
