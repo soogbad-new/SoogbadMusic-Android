@@ -224,7 +224,7 @@ public class MainActivity extends AppCompatActivity {
         mediaSession.setPlaybackState(new PlaybackState.Builder().setActions(PlaybackState.ACTION_PLAY_PAUSE | PlaybackState.ACTION_SKIP_TO_PREVIOUS | PlaybackState.ACTION_SKIP_TO_NEXT).setState(PlaybackState.STATE_NONE, PlaybackState.PLAYBACK_POSITION_UNKNOWN, 0).build());
         notificationManager.createNotificationChannel(new NotificationChannel("soogbadmusic", "SoogbadMusic", NotificationManager.IMPORTANCE_DEFAULT));
         Playlist.setDirectory(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC));
-        Playlist.refreshSongs(true);
+        Playlist.refreshSongs();
         PlayerManager.setVolume(getSharedPreferences("SoogbadMusicPreferences", MODE_PRIVATE).getFloat("Volume", 1.0f));
         volumeSeekBar.setProgress(Math.round(PlayerManager.getVolume() * 100));
         volumeSeekBar.setOnProgressChangedListener(new BubbleSeekBar.OnProgressChangedListener() {
@@ -239,6 +239,7 @@ public class MainActivity extends AppCompatActivity {
             public void getProgressOnFinally(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat, boolean fromUser) { }
         });
         progressBarBackground.setOnTouchListener(onProgressBarTouchListener);
+        progressBar.setOnTouchListener(onProgressBarTouchListener);
         PlayerManager.addOnPausedValueChangedListener(new EmptyListener() {
             @Override
             public void onListenerInvoked() {
@@ -320,32 +321,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 new Handler(Looper.getMainLooper()).postAtFrontOfQueue(() -> {
-                    if(PlayerManager.getPlayer() != null) {
-                            progressBar.setVisibility(View.VISIBLE);
-                            if(progressBar.getWidth() <= progressBarBackground.getWidth()) {
-                                int width = (int)Math.round(PlayerManager.getPlayer().getCurrentTime() / PlayerManager.getPlayer().getSong().getDuration() * progressBarBackground.getWidth());
-                                progressBar.getLayoutParams().width = width == 0 ? 1 : width;
-                                currentTimeTextView.setText(MyApplication.Utility.formatTime(PlayerManager.getPlayer().getCurrentTime()));
-                                durationTextView.setText(MyApplication.Utility.formatTime(PlayerManager.getPlayer().getSong().getDuration()));
-                            }
-                        }
-                    else {
-                        if(Playlist.isAccessingRefreshSongsProgress())
-                            return;
-                        double progress = Playlist.getRefreshSongsProgress();
-                        if(progress > 0) {
-                            progressBar.setVisibility(View.VISIBLE);
-                            currentTimeTextView.setText("");
-                            durationTextView.setText("");
-                            if(progressBar.getWidth() < progressBarBackground.getWidth())
-                                progressBar.getLayoutParams().width = (int)Math.round(progress * progressBarBackground.getWidth());
-                        }
-                        else {
-                            progressBar.setVisibility(View.INVISIBLE);
-                            currentTimeTextView.setText("");
-                            durationTextView.setText("");
-                        }
-                    }
+                    updateProgressBar();
                     if(Playlist.getRefreshSongsComplete()) {
                         Playlist.setRefreshSongsComplete(false);
                         Playlist.setRefreshSongsProgress(0);
@@ -415,12 +391,38 @@ public class MainActivity extends AppCompatActivity {
         };
         audioManager.registerAudioDeviceCallback(audioDeviceCallback, new Handler());
     }
+    private void updateProgressBar() {
+        if(Playlist.isAccessingRefreshSongsProgress())
+            return;
+        double progress = Playlist.getRefreshSongsProgress();
+        if(progress > 0) {
+            progressBar.setVisibility(View.VISIBLE);
+            currentTimeTextView.setText("");
+            durationTextView.setText("");
+            if(progressBar.getWidth() <= progressBarBackground.getWidth())
+                progressBar.getLayoutParams().width = (int)Math.round(progress * progressBarBackground.getWidth());
+        }
+        else if(PlayerManager.getPlayer() != null) {
+            progressBar.setVisibility(View.VISIBLE);
+            if(progressBar.getWidth() <= progressBarBackground.getWidth()) {
+                int width = (int)Math.round(PlayerManager.getPlayer().getCurrentTime() / PlayerManager.getPlayer().getSong().getDuration() * progressBarBackground.getWidth());
+                progressBar.getLayoutParams().width = width == 0 ? 1 : width;
+                currentTimeTextView.setText(MyApplication.Utility.formatTime(PlayerManager.getPlayer().getCurrentTime()));
+                durationTextView.setText(MyApplication.Utility.formatTime(PlayerManager.getPlayer().getSong().getDuration()));
+            }
+        }
+        else {
+            progressBar.setVisibility(View.INVISIBLE);
+            currentTimeTextView.setText("");
+            durationTextView.setText("");
+        }
+    }
     private View.OnTouchListener onProgressBarTouchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View view, MotionEvent motionEvent) {
             if(motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
                 searchEditTextClearFocus();
-                if(PlayerManager.getPlayer() != null) {
+                if(PlayerManager.getPlayer() != null && !Playlist.isAccessingRefreshSongsProgress() && Playlist.getRefreshSongsProgress() == 0) {
                     double time = (double) motionEvent.getX() / progressBarBackground.getWidth() * PlayerManager.getPlayer().getSong().getDuration();
                     if (time > PlayerManager.getPlayer().getSong().getDuration() - 1)
                         time = PlayerManager.getPlayer().getSong().getDuration() - 1;
@@ -462,7 +464,7 @@ public class MainActivity extends AppCompatActivity {
             filterButton.setImageDrawable(AppCompatResources.getDrawable(this, R.drawable.filter_on));
         else
             filterButton.setImageDrawable(AppCompatResources.getDrawable(this, R.drawable.filter_off));
-        Playlist.refreshSongs(false);
+        Playlist.refreshSongs();
     }
 
     public void onPlayPauseButtonClick(View view) {

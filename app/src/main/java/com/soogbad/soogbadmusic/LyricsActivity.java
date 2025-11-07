@@ -68,7 +68,7 @@ public class LyricsActivity extends AppCompatActivity {
             public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
                 if(item.getItemId() == 1) {
                     String selectedText = songLyricsTextView.getText().toString().substring(songLyricsTextView.getSelectionStart(), songLyricsTextView.getSelectionEnd());
-                    startActivity(new Intent().setAction(Intent.ACTION_SEND).putExtra(Intent.EXTRA_TEXT, selectedText).setType("text/plain").setPackage("com.google.android.apps.translate").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                    startActivity(new Intent().setPackage("com.google.android.apps.translate").setAction(Intent.ACTION_PROCESS_TEXT).setType("text/plain").putExtra(Intent.EXTRA_PROCESS_TEXT, selectedText).putExtra(Intent.EXTRA_PROCESS_TEXT_READONLY, true));
                     mode.finish();
                     return true;
                 }

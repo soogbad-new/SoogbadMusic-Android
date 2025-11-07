@@ -1,6 +1,13 @@
 package com.soogbad.soogbadmusic;
 
+import android.widget.Toast;
+
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -38,7 +45,7 @@ public class Playlist {
     public static boolean isAccessingRefreshSongsProgress() { return isAccessingRefreshSongsProgress; }
 
 
-    public static void refreshSongs(boolean calculateProgress) {
+    public static void refreshSongs() {
         if(lastRefreshThread != null) {
             stopLastRefresh = true;
             while(lastRefreshThread.isAlive()) { }
@@ -48,31 +55,24 @@ public class Playlist {
             @Override
             public void run() {
                 songs = new ArrayList<>();
-                File[] files = directory.listFiles();
-                if(files != null) {
-                    int songsTotal = files.length;
-                    if(PlayerManager.getFilter()) {
-                        songsTotal = 0;
-                        for(File file : files) {
-                            if(stopLastRefresh)
-                                return;
-                            if(file.getAbsolutePath().toLowerCase().endsWith(".mp3") && !file.getName().toLowerCase().startsWith("_"))
-                                songsTotal++;
-                        }
-                    }
-                    for(int i = 0, j = 0; i < files.length; i++) {
-                        if(stopLastRefresh)
-                            return;
-                        if(files[i].getAbsolutePath().toLowerCase().endsWith(".mp3") && (!files[i].getName().toLowerCase().startsWith("_") || !PlayerManager.getFilter())) {
-                            songs.add(new Song(files[i]));
-                            if(calculateProgress) {
-                                isAccessingRefreshSongsProgress = true;
-                                refreshSongsProgress = (double) j / songsTotal;
-                                isAccessingRefreshSongsProgress = false;
-                            }
-                            j++;
-                        }
-                    }
+                ArrayList<Path> files = new ArrayList<>();
+                try(DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(directory.getAbsolutePath()), "*.mp3")) {
+                    if(!PlayerManager.getFilter())
+                        stream.forEach(files::add);
+                    else
+                        for(Path filePath : stream)
+                            if(!filePath.getFileName().toString().startsWith("_"))
+                                files.add(filePath);
+                } catch(IOException e) { throw new RuntimeException(); }
+                int i = 0;
+                for(Path file : files) {
+                    if(stopLastRefresh)
+                        return;
+                    songs.add(new Song(file.toFile()));
+                    isAccessingRefreshSongsProgress = true;
+                    refreshSongsProgress = (double)i / files.size();
+                    isAccessingRefreshSongsProgress = false;
+                    i++;
                 }
                 sortSongs();
                 refreshSongsComplete = true;
