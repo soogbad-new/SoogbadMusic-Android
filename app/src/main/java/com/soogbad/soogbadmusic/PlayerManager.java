@@ -14,7 +14,6 @@ public class PlayerManager {
     private static ArrayList<Song> history = new ArrayList<>();
     private static int currentlyPlayedSongIndex = -1;
     private static Player player = null;
-    private static float volume = 1.0f;
     private static boolean paused = true;
     private static boolean shuffle = false;
     private static boolean filter = true;
@@ -48,17 +47,6 @@ public class PlayerManager {
     }
     public static boolean getFilter() { return filter; }
     public static void setFilter(boolean filter) { PlayerManager.filter = filter; }
-    public static float getVolume() {
-        return volume;
-    }
-    public static void setVolume(float volume) {
-        PlayerManager.volume = volume;
-        if(player != null)
-            player.setVolume(volume);
-        SharedPreferences.Editor sharedPreferencesEditor = MyApplication.getAppContext().getSharedPreferences("SoogbadMusicPreferences", Context.MODE_PRIVATE).edit();
-        sharedPreferencesEditor.putFloat("Volume", volume);
-        sharedPreferencesEditor.apply();
-    }
     public static boolean getPaused() {
         return paused;
     }
@@ -87,7 +75,6 @@ public class PlayerManager {
         if(player != null)
             player.release();
         player = new Player(history.get(currentlyPlayedSongIndex));
-        player.setVolume(volume);
         player.addOnPlaybackCompletedListener(new EmptyListener() {
            @Override
            public void onListenerInvoked() {

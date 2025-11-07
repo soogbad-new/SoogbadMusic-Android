@@ -15,7 +15,6 @@ import java.util.ArrayList;
 public class Player {
 
     private Song song;
-    private float volume = 1.0f;
     private boolean paused;
     private boolean stopped = false;
     private MediaPlayer mediaPlayer;
@@ -69,13 +68,6 @@ public class Player {
     public void setCurrentTime(double currentTime) {
         if(!stopped && currentTime >= 0 && currentTime < getSong().getDuration())
             mediaPlayer.seekTo((int)Math.round(currentTime * 1000));
-    }
-    public float getVolume() {
-        return volume;
-    }
-    public void setVolume(float volume) {
-        this.volume = volume;
-        mediaPlayer.setVolume(volume, volume);
     }
 
     public void play() {

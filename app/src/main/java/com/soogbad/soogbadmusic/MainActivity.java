@@ -71,7 +71,6 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.android.material.shape.CornerFamily;
 import com.google.android.material.shape.MaterialShapeDrawable;
 import com.google.android.material.shape.ShapeAppearanceModel;
-import com.xw.repo.BubbleSeekBar;
 
 import java.util.ArrayList;
 import java.util.Timer;
@@ -80,7 +79,6 @@ import java.util.TimerTask;
 public class MainActivity extends AppCompatActivity {
 
     private ConstraintLayout constraintLayout;
-    private BubbleSeekBar volumeSeekBar;
     private ImageButton shuffleButton, filterButton, playPauseButton, previousButton, nextButton;
     private TextView songNameTextView, songInfoTextView, currentTimeTextView, durationTextView;
     private ImageView albumCoverImageView;
@@ -107,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         getWindow().setStatusBarColor(Color.TRANSPARENT);
         getWindow().setNavigationBarColor(Color.BLACK);
-        constraintLayout = findViewById(R.id.constraintLayout); volumeSeekBar = findViewById(R.id.volumeSeekBar); shuffleButton = findViewById(R.id.shuffleButton); filterButton = findViewById(R.id.filterButton); playPauseButton = findViewById(R.id.playPauseButton); previousButton = findViewById(R.id.previousButton); nextButton = findViewById(R.id.nextButton); songNameTextView = findViewById(R.id.songNameTextView); songInfoTextView = findViewById(R.id.songInfoTextView); currentTimeTextView = findViewById(R.id.currentTimeTextView); durationTextView = findViewById(R.id.durationTextView); albumCoverImageView = findViewById(R.id.albumCoverImageView); progressBarBackground = findViewById(R.id.progressBarBackground); progressBar = findViewById(R.id.progressBar); searchEditText = findViewById(R.id.searchEditText); advancedSearchButton = findViewById(R.id.advancedSearchButton); songList = findViewById(R.id.songList);
+        constraintLayout = findViewById(R.id.constraintLayout); shuffleButton = findViewById(R.id.shuffleButton); filterButton = findViewById(R.id.filterButton); playPauseButton = findViewById(R.id.playPauseButton); previousButton = findViewById(R.id.previousButton); nextButton = findViewById(R.id.nextButton); songNameTextView = findViewById(R.id.songNameTextView); songInfoTextView = findViewById(R.id.songInfoTextView); currentTimeTextView = findViewById(R.id.currentTimeTextView); durationTextView = findViewById(R.id.durationTextView); albumCoverImageView = findViewById(R.id.albumCoverImageView); progressBarBackground = findViewById(R.id.progressBarBackground); progressBar = findViewById(R.id.progressBar); searchEditText = findViewById(R.id.searchEditText); advancedSearchButton = findViewById(R.id.advancedSearchButton); songList = findViewById(R.id.songList);
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         defaultSearchbarBackground = searchEditText.getBackground();
         ViewCompat.setOnApplyWindowInsetsListener(constraintLayout, (view, insets) -> {
@@ -225,19 +223,6 @@ public class MainActivity extends AppCompatActivity {
         notificationManager.createNotificationChannel(new NotificationChannel("soogbadmusic", "SoogbadMusic", NotificationManager.IMPORTANCE_DEFAULT));
         Playlist.setDirectory(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC));
         Playlist.refreshSongs();
-        PlayerManager.setVolume(getSharedPreferences("SoogbadMusicPreferences", MODE_PRIVATE).getFloat("Volume", 1.0f));
-        volumeSeekBar.setProgress(Math.round(PlayerManager.getVolume() * 100));
-        volumeSeekBar.setOnProgressChangedListener(new BubbleSeekBar.OnProgressChangedListener() {
-            @Override
-            public void onProgressChanged(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat, boolean fromUser) {
-                searchEditTextClearFocus();
-                PlayerManager.setVolume(progress / 100.0f);
-            }
-            @Override
-            public void getProgressOnActionUp(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) { }
-            @Override
-            public void getProgressOnFinally(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat, boolean fromUser) { }
-        });
         progressBarBackground.setOnTouchListener(onProgressBarTouchListener);
         progressBar.setOnTouchListener(onProgressBarTouchListener);
         PlayerManager.addOnPausedValueChangedListener(new EmptyListener() {
