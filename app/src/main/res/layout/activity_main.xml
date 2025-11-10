@@ -23,7 +23,42 @@
             app:title="SoogbadMusic"
             app:titleTextColor="@color/white"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent">
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:layout_gravity="end">
+                <ImageButton
+                    android:id="@+id/filterButton"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_marginTop="1dp"
+                    android:layout_marginEnd="17dp"
+                    android:onClick="onFilterButtonClick"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/filter_on"
+                    android:background="@android:color/transparent" />
+                <ImageButton
+                    android:id="@+id/shuffleButton"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_marginEnd="20dp"
+                    android:onClick="onShuffleButtonClick"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/shuffle_off"
+                    android:background="@android:color/transparent" />
+                <ImageButton
+                    android:id="@+id/lyricsButton"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_marginEnd="10dp"
+                    android:onClick="onLyricsButtonClick"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/lyrics"
+                    android:background="@android:color/transparent" />
+            </LinearLayout>
+        </androidx.appcompat.widget.Toolbar>
 
         <include
             android:id="@+id/include"
@@ -31,72 +66,55 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
-
-        <ImageButton
-            android:id="@+id/shuffleButton"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_marginRight="30dp"
-            android:layout_marginTop="15dp"
-            android:onClick="onShuffleButtonClick"
-            android:scaleType="fitXY"
-            android:src="@drawable/shuffle_off"
-            android:background="@android:color/transparent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/toolbar" />
-
-        <ImageButton
-            android:id="@+id/filterButton"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_marginRight="30dp"
-            android:layout_marginTop="15dp"
-            android:onClick="onFilterButtonClick"
-            android:scaleType="fitXY"
-            android:src="@drawable/filter_on"
-            android:background="@android:color/transparent"
-            app:layout_constraintRight_toLeftOf="@id/shuffleButton"
-            app:layout_constraintTop_toBottomOf="@id/toolbar" />
-
         <ImageView
             android:id="@+id/albumCoverImageView"
-            android:layout_width="75dp"
-            android:layout_height="75dp"
+            android:layout_width="95dp"
+            android:layout_height="95dp"
             android:layout_marginLeft="15dp"
-            android:layout_marginTop="15dp"
+            android:layout_marginTop="20dp"
             android:scaleType="fitXY"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/shuffleButton" />
+            app:layout_constraintTop_toBottomOf="@id/toolbar" />
 
         <TextView
             android:id="@+id/songNameTextView"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:ellipsize="end"
+            android:maxLines="2"
             android:textColor="@color/white"
             android:textSize="20sp"
             android:textStyle="bold"
             app:layout_constraintLeft_toRightOf="@id/albumCoverImageView"
-            app:layout_constraintTop_toTopOf="@id/albumCoverImageView" />
+            app:layout_constraintTop_toTopOf="@id/albumCoverImageView"
+            app:layout_constraintBottom_toTopOf="@id/songInfoTextView"
+            app:layout_constraintRight_toRightOf="parent" />
 
         <TextView
             android:id="@+id/songInfoTextView"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
             android:layout_marginTop="5dp"
+            android:ellipsize="end"
+            android:maxLines="2"
             android:textColor="@color/white"
             android:textSize="18sp"
             app:layout_constraintLeft_toRightOf="@id/albumCoverImageView"
-            app:layout_constraintTop_toBottomOf="@id/songNameTextView" />
+            app:layout_constraintTop_toBottomOf="@id/songNameTextView"
+            app:layout_constraintBottom_toBottomOf="@id/albumCoverImageView"
+            app:layout_constraintRight_toRightOf="parent" />
 
 
         <ImageButton
             android:id="@+id/previousButton"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
             android:layout_marginLeft="100dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="25dp"
             android:onClick="onPreviousButtonClick"
             android:scaleType="fitXY"
             android:src="@drawable/previous"
@@ -109,9 +127,9 @@
 
         <ImageButton
             android:id="@+id/playPauseButton"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginTop="19dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginTop="24dp"
             android:onClick="onPlayPauseButtonClick"
             android:scaleType="fitXY"
             android:src="@drawable/play"
@@ -124,10 +142,10 @@
 
         <ImageButton
             android:id="@+id/nextButton"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
             android:layout_marginRight="100dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="25dp"
             android:onClick="onNextButtonClick"
             android:scaleType="fitXY"
             android:src="@drawable/next"
@@ -144,7 +162,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="5dp"
-            android:layout_marginTop="5dp"
+            android:layout_marginTop="10dp"
             android:textColor="@color/white"
             android:textSize="11sp"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -155,7 +173,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginRight="5dp"
-            android:layout_marginTop="5dp"
+            android:layout_marginTop="10dp"
             android:textColor="@color/white"
             android:textSize="11sp"
             app:layout_constraintRight_toRightOf="parent"

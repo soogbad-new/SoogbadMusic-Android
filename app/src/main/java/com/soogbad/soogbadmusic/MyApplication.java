@@ -65,7 +65,7 @@ public class MyApplication extends Application {
                     break;
                 text = initText.substring(0, initText.length() - i - 1) + "...";
             }
-            textView.setText(text);
+            textView.setText(text.replaceAll(" \\.\\.\\.", "..."));
         }
 
     }

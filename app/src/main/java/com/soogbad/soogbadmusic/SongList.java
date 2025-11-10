@@ -11,11 +11,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class SongList extends RecyclerView {
 
-    private int songListItems;
+    private int visibleItems;
     private int firstPosition = -1, lastPosition = -1;
+    private int invisibleSongsAmount;
 
     public SongList(@NonNull Context context) {
         super(context);
@@ -35,15 +37,16 @@ public class SongList extends RecyclerView {
         getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
+                PlayerManager.setPaused(false);
                 int itemHeight = MyApplication.Utility.dpToPixels(50, getResources().getDisplayMetrics());
-                songListItems = getHeight() / itemHeight;
-                getLayoutParams().height = songListItems * itemHeight;
+                visibleItems = getHeight() / itemHeight;
+                getLayoutParams().height = visibleItems * itemHeight;
                 ConstraintSet set = new ConstraintSet();
                 ConstraintLayout layout = (ConstraintLayout)getParent();
                 set.clone(layout);
                 set.clear(R.id.songList, ConstraintSet.BOTTOM);
                 set.applyTo(layout);
-                changeSongList(new ArrayList<>());
+                changeSongList(new ArrayList<>(), false);
                 getViewTreeObserver().removeOnGlobalLayoutListener(this);
             }
         });
@@ -57,12 +60,19 @@ public class SongList extends RecyclerView {
         });
     }
 
-    public void changeSongList(ArrayList<Song> songs) {
+    public void changeSongList(ArrayList<Song> songs, boolean keepScroll) {
         ArrayList<Song> list = new ArrayList<>(songs);
         int songsCount = list.size();
-        for(int i = 1; i <= songListItems - songsCount; i++)
+        for(int i = 1; i <= visibleItems - songsCount; i++) {
             list.add(null);
-        setAdapter(new SongListAdapter(list));
+            invisibleSongsAmount--;
+        }
+        for(int i = 1; i <= invisibleSongsAmount; i++)
+            list.add(null);
+        if(keepScroll && getAdapter() != null)
+            ((SongListAdapter)getAdapter()).setSongs(list);
+        else
+            setAdapter(new SongListAdapter(list));
     }
 
     public int findFirstCompletelyVisibleItemPosition() {
@@ -70,6 +80,22 @@ public class SongList extends RecyclerView {
     }
     public int findLastCompletelyVisibleItemPosition() {
         return lastPosition;
+    }
+
+    public void addInvisibleSongsToMakeUpForCoveredArea(int coveredAreaHeight) {
+        if(getAdapter() == null)
+            return;
+        int itemHeight = MyApplication.Utility.dpToPixels(50, getResources().getDisplayMetrics());
+        invisibleSongsAmount = coveredAreaHeight / itemHeight;
+        changeSongList(((SongListAdapter)getAdapter()).getSongs(), true);
+    }
+    public void removeAllInvisibleSongs() {
+        invisibleSongsAmount = 0;
+        if(getAdapter() == null)
+            return;
+        ArrayList<Song> songs = ((SongListAdapter)getAdapter()).getSongs();
+        songs.removeIf(Objects::isNull);
+        changeSongList(songs, true);
     }
 
 }

@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.Objects;
 
 public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongListViewHolder> {
 
@@ -27,9 +28,8 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongLi
             durationTextView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
                 @Override
                 public void onGlobalLayout() {
-                    int limitTextRight = durationTextView.getLeft() - 100;
-                    MyApplication.Utility.shortenTextViewText(nameTextView, limitTextRight);
-                    MyApplication.Utility.shortenTextViewText(infoTextView, limitTextRight);
+                    MyApplication.Utility.shortenTextViewText(nameTextView, durationTextView.getLeft() - 50);
+                    MyApplication.Utility.shortenTextViewText(infoTextView, durationTextView.getLeft() - 50);
                 }
             });
         }
@@ -86,13 +86,10 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongLi
     public int getItemCount() {
         return songs.size();
     }
-
     public ArrayList<Song> getSongs() {
         return songs;
     }
-
-    public Song getSong(View itemView) {
-        return dictionary.get(itemView);
-    }
+    public void setSongs(ArrayList<Song> songs) { this.songs = songs; }
+    public Song getSong(View itemView) { return dictionary.get(itemView); }
 
 }

@@ -102,7 +102,7 @@ public class SongInfoDialog {
                 Playlist.getSongs().get(Playlist.getSongs().indexOf(song)).refresh();
                 Playlist.sortSongs();
                 SongList songList = mainActivity.getSongList();
-                songList.changeSongList(Playlist.getSongs());
+                songList.changeSongList(Playlist.getSongs(), false);
                 songList.scrollToPosition(songList.findFirstCompletelyVisibleItemPosition());
                 if(currentlyPlaying)
                     PlayerManager.raiseOnSongChanged();

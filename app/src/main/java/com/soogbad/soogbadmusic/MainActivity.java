@@ -79,7 +79,7 @@ import java.util.TimerTask;
 public class MainActivity extends AppCompatActivity {
 
     private ConstraintLayout constraintLayout;
-    private ImageButton shuffleButton, filterButton, playPauseButton, previousButton, nextButton;
+    private ImageButton lyricsButton, shuffleButton, filterButton, playPauseButton, previousButton, nextButton;
     private TextView songNameTextView, songInfoTextView, currentTimeTextView, durationTextView;
     private ImageView albumCoverImageView;
     private View progressBarBackground, progressBar;
@@ -96,6 +96,7 @@ public class MainActivity extends AppCompatActivity {
     private int defaultSearchbarHeight = 0;
 
     private boolean advancedSearch = false;
+    private boolean startedLyrics = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         getWindow().setStatusBarColor(Color.TRANSPARENT);
         getWindow().setNavigationBarColor(Color.BLACK);
-        constraintLayout = findViewById(R.id.constraintLayout); shuffleButton = findViewById(R.id.shuffleButton); filterButton = findViewById(R.id.filterButton); playPauseButton = findViewById(R.id.playPauseButton); previousButton = findViewById(R.id.previousButton); nextButton = findViewById(R.id.nextButton); songNameTextView = findViewById(R.id.songNameTextView); songInfoTextView = findViewById(R.id.songInfoTextView); currentTimeTextView = findViewById(R.id.currentTimeTextView); durationTextView = findViewById(R.id.durationTextView); albumCoverImageView = findViewById(R.id.albumCoverImageView); progressBarBackground = findViewById(R.id.progressBarBackground); progressBar = findViewById(R.id.progressBar); searchEditText = findViewById(R.id.searchEditText); advancedSearchButton = findViewById(R.id.advancedSearchButton); songList = findViewById(R.id.songList);
+        constraintLayout = findViewById(R.id.constraintLayout); lyricsButton = findViewById(R.id.lyricsButton); shuffleButton = findViewById(R.id.shuffleButton); filterButton = findViewById(R.id.filterButton); playPauseButton = findViewById(R.id.playPauseButton); previousButton = findViewById(R.id.previousButton); nextButton = findViewById(R.id.nextButton); songNameTextView = findViewById(R.id.songNameTextView); songInfoTextView = findViewById(R.id.songInfoTextView); currentTimeTextView = findViewById(R.id.currentTimeTextView); durationTextView = findViewById(R.id.durationTextView); albumCoverImageView = findViewById(R.id.albumCoverImageView); progressBarBackground = findViewById(R.id.progressBarBackground); progressBar = findViewById(R.id.progressBar); searchEditText = findViewById(R.id.searchEditText); advancedSearchButton = findViewById(R.id.advancedSearchButton); songList = findViewById(R.id.songList);
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         defaultSearchbarBackground = searchEditText.getBackground();
         ViewCompat.setOnApplyWindowInsetsListener(constraintLayout, (view, insets) -> {
@@ -125,6 +126,7 @@ public class MainActivity extends AppCompatActivity {
                 if(defaultSearchbarHeight != 0)
                     searchEditText.setHeight(Math.round(0.9f * defaultSearchbarHeight));
                 searchEditText.setPadding(MyApplication.Utility.dpToPixels(10, getResources().getDisplayMetrics()), searchEditText.getPaddingTop(), MyApplication.Utility.dpToPixels(10, getResources().getDisplayMetrics()), searchEditText.getPaddingBottom());
+                songList.addInvisibleSongsToMakeUpForCoveredArea(keyboard.bottom - (constraintLayout.getBottom() - songList.getBottom()));
             }
             else {
                 searchEditTextClearFocus();
@@ -136,6 +138,7 @@ public class MainActivity extends AppCompatActivity {
                 if(defaultSearchbarHeight != 0)
                     searchEditText.setHeight(defaultSearchbarHeight);
                 searchEditText.setPadding(10, searchEditText.getPaddingTop(), 10, searchEditText.getPaddingBottom());
+                songList.removeAllInvisibleSongs();
             }
             return insets;
         });
@@ -245,7 +248,7 @@ public class MainActivity extends AppCompatActivity {
                 String text = editable.toString();
                 if(text.equals("") || searchEditText.getCurrentTextColor() == getResources().getColor(R.color.searchbarPlaceholder)) {
                     if(songList.getAdapter() != null && songList.getAdapter().getItemCount() < Playlist.getSongs().size()) {
-                        songList.changeSongList(Playlist.getSongs());
+                        songList.changeSongList(Playlist.getSongs(), false);
                         int firstPosition = songList.findFirstCompletelyVisibleItemPosition();
                         int lastPosition = songList.findLastCompletelyVisibleItemPosition();
                         if(PlayerManager.getPlayer() != null) {
@@ -260,7 +263,7 @@ public class MainActivity extends AppCompatActivity {
                     for (Song song : Playlist.getSongs())
                         if (song.getData().contains(text, advancedSearch))
                             songs.add(song);
-                    songList.changeSongList(songs);
+                    songList.changeSongList(songs, false);
                 }
             }
         });
@@ -273,7 +276,7 @@ public class MainActivity extends AppCompatActivity {
                 searchEditText.setTypeface(null, Typeface.ITALIC);
                 searchEditText.setTextColor(getResources().getColor(R.color.searchbarPlaceholder));
                 searchEditText.setText("Search " + Playlist.getSongs().size() + " Songs");
-                songList.changeSongList(Playlist.getSongs());
+                songList.changeSongList(Playlist.getSongs(), false);
                 int firstPosition = songList.findFirstCompletelyVisibleItemPosition();
                 int lastPosition = songList.findLastCompletelyVisibleItemPosition();
                 progressBar.getLayoutParams().width = 1;
@@ -282,11 +285,8 @@ public class MainActivity extends AppCompatActivity {
                     songList.scrollToPosition(index);
                 else
                     songList.scrollToPosition(firstPosition);
-                int limitTextRight = constraintLayout.getWidth() - 100;
                 songNameTextView.setText(data.Artist + " - " + data.Title);
-                MyApplication.Utility.shortenTextViewText(songNameTextView, limitTextRight);
                 songInfoTextView.setText(data.Album + " (" + data.Year + ")");
-                MyApplication.Utility.shortenTextViewText(songInfoTextView, limitTextRight);
                 albumCoverImageView.setImageBitmap(data.AlbumCover);
                 mediaSession.setMetadata(new MediaMetadata.Builder().putLong(MediaMetadata.METADATA_KEY_DURATION, (long)(song.getDuration() * 1000)).putString(MediaMetadata.METADATA_KEY_TITLE, data.Title).putString(MediaMetadata.METADATA_KEY_ARTIST, data.Artist).putString(MediaMetadata.METADATA_KEY_ALBUM, data.Album).putLong(MediaMetadata.METADATA_KEY_YEAR, data.Year).putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, data.AlbumCover).build());
                 mediaSession.setPlaybackState(new PlaybackState.Builder().setActions(PlaybackState.ACTION_PLAY | PlaybackState.ACTION_PAUSE | PlaybackState.ACTION_PLAY_PAUSE | PlaybackState.ACTION_SKIP_TO_PREVIOUS | PlaybackState.ACTION_SKIP_TO_NEXT).setState(PlayerManager.getPaused() ? PlaybackState.STATE_PAUSED : PlaybackState.STATE_PLAYING, (long)(1000 * PlayerManager.getPlayer().getCurrentTime()), PlayerManager.getPaused() ? 0 : 1).build());
@@ -310,7 +310,7 @@ public class MainActivity extends AppCompatActivity {
                     if(Playlist.getRefreshSongsComplete()) {
                         Playlist.setRefreshSongsComplete(false);
                         Playlist.setRefreshSongsProgress(0);
-                        songList.changeSongList(Playlist.getSongs());
+                        songList.changeSongList(Playlist.getSongs(), false);
                         playPauseButton.setEnabled(true); previousButton.setEnabled(true); nextButton.setEnabled(true); searchEditText.setEnabled(true);
                         searchEditTextClearFocus();
                         searchEditText.setTypeface(null, Typeface.ITALIC);
@@ -434,6 +434,13 @@ public class MainActivity extends AppCompatActivity {
         searchEditText.clearFocus();
     }
 
+    public void onLyricsButtonClick(View view) {
+        if(!startedLyrics) {
+            startedLyrics = true;
+            searchEditTextClearFocus();
+            startActivity(new Intent(this, LyricsActivity.class));
+        }
+    }
     public void onShuffleButtonClick(View view) {
         searchEditTextClearFocus();
         PlayerManager.setShuffle(!PlayerManager.getShuffle());
@@ -473,24 +480,6 @@ public class MainActivity extends AppCompatActivity {
             advancedSearchButton.setImageDrawable(AppCompatResources.getDrawable(this, R.drawable.advanced_search_on));
         else
             advancedSearchButton.setImageDrawable(AppCompatResources.getDrawable(this, R.drawable.advanced_search_off));
-    }
-
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.my_menu, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    private boolean startedLyrics = false;
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if(item.getItemId() == R.id.lyricsButton && !startedLyrics) {
-            startedLyrics = true;
-            searchEditTextClearFocus();
-            startActivity(new Intent(this, LyricsActivity.class));
-        }
-        return super.onOptionsItemSelected(item);
     }
 
     @Override
