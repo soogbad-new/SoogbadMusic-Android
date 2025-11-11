@@ -63,11 +63,12 @@ public class SongList extends RecyclerView {
     public void changeSongList(ArrayList<Song> songs, boolean keepScroll) {
         ArrayList<Song> list = new ArrayList<>(songs);
         int songsCount = list.size();
+        int necessaryInvisibleSongsAmount = invisibleSongsAmount;
         for(int i = 1; i <= visibleItems - songsCount; i++) {
             list.add(null);
-            invisibleSongsAmount--;
+            necessaryInvisibleSongsAmount--;
         }
-        for(int i = 1; i <= invisibleSongsAmount; i++)
+        for(int i = 1; i <= necessaryInvisibleSongsAmount; i++)
             list.add(null);
         if(keepScroll && getAdapter() != null)
             ((SongListAdapter)getAdapter()).setSongs(list);
