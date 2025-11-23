@@ -246,25 +246,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable editable) {
                 String text = editable.toString();
-                if(text.equals("") || searchEditText.getCurrentTextColor() == getResources().getColor(R.color.searchbarPlaceholder)) {
-                    if(songList.getAdapter() != null && songList.getAdapter().getItemCount() < Playlist.getSongs().size()) {
-                        songList.changeSongList(Playlist.getSongs(), false);
-                        int firstPosition = songList.findFirstCompletelyVisibleItemPosition();
-                        int lastPosition = songList.findLastCompletelyVisibleItemPosition();
-                        if(PlayerManager.getPlayer() != null) {
-                            int index = Playlist.getSongs().indexOf(PlayerManager.getPlayer().getSong());
-                            if(!(index >= firstPosition && index <= lastPosition))
-                                songList.scrollToPosition(index);
-                        }
-                    }
-                }
-                else {
-                    ArrayList<Song> songs = new ArrayList<>();
-                    for (Song song : Playlist.getSongs())
-                        if (song.getData().contains(text, advancedSearch))
-                            songs.add(song);
-                    songList.changeSongList(songs, false);
-                }
+                handleSearchEditTextTextChangedEvent(text);
             }
         });
         PlayerManager.addOnSongChangedListener(new EmptyListener() {
@@ -424,6 +406,28 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    public void handleSearchEditTextTextChangedEvent(String text) { //temporary name
+        if(text.equals("") || searchEditText.getCurrentTextColor() == getResources().getColor(R.color.searchbarPlaceholder)) {
+            if(songList.getAdapter() != null && songList.getAdapter().getItemCount() < Playlist.getSongs().size()) {
+                songList.changeSongList(Playlist.getSongs(), false);
+                int firstPosition = songList.findFirstCompletelyVisibleItemPosition();
+                int lastPosition = songList.findLastCompletelyVisibleItemPosition();
+                if(PlayerManager.getPlayer() != null) {
+                    int index = Playlist.getSongs().indexOf(PlayerManager.getPlayer().getSong());
+                    if(!(index >= firstPosition && index <= lastPosition))
+                        songList.scrollToPosition(index);
+                }
+            }
+        }
+        else {
+            ArrayList<Song> songs = new ArrayList<>();
+            for(Song song : Playlist.getSongs())
+                if(song.getData().contains(text, advancedSearch))
+                    songs.add(song);
+            songList.changeSongList(songs, false);
+        }
+    }
+
     public void searchEditTextClearFocus() {
         if(searchEditText.getText().toString().equals("")) {
             searchEditText.setTypeface(null, Typeface.ITALIC);
@@ -480,6 +484,7 @@ public class MainActivity extends AppCompatActivity {
             advancedSearchButton.setImageDrawable(AppCompatResources.getDrawable(this, R.drawable.advanced_search_on));
         else
             advancedSearchButton.setImageDrawable(AppCompatResources.getDrawable(this, R.drawable.advanced_search_off));
+        handleSearchEditTextTextChangedEvent(searchEditText.getText().toString());
     }
 
     @Override
