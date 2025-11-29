@@ -57,7 +57,7 @@ public class MyApplication extends Application {
             String initText = textView.getText().toString();
             String text = initText;
             for(int i = 1; ; i++) {
-                if(text == "")
+                if(text.isEmpty())
                     return;
                 Rect bounds = new Rect();
                 textView.getPaint().getTextBounds(text, 0, text.length() - 1, bounds);

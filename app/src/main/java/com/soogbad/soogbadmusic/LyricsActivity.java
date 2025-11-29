@@ -1,10 +1,6 @@
 package com.soogbad.soogbadmusic;
 
 import androidx.appcompat.app.AppCompatActivity;
-
-import android.net.Uri;
-import android.view.ActionMode;
-import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -14,19 +10,16 @@ import androidx.core.view.WindowInsetsCompat;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.text.method.ScrollingMovementMethod;
+import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewTreeObserver;
-import android.view.WindowInsets;
-import android.view.textclassifier.TextClassificationManager;
-import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import java.text.MessageFormat;
 
 public class LyricsActivity extends AppCompatActivity {
 
-    private ConstraintLayout constraintLayout;
     private TextView songNameTextView, songInfoTextView, songLyricsTextView;
 
     @Override
@@ -37,19 +30,15 @@ public class LyricsActivity extends AppCompatActivity {
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         getWindow().setStatusBarColor(Color.TRANSPARENT);
         getWindow().setNavigationBarColor(Color.BLACK);
-        constraintLayout = findViewById(R.id.lyricsConstraintLayout); songNameTextView = findViewById(R.id.lyricsSongNameTextView); songInfoTextView = findViewById(R.id.lyricsSongInfoTextView); songLyricsTextView = findViewById(R.id.songLyrics);
+        ConstraintLayout constraintLayout = findViewById(R.id.lyricsConstraintLayout);
+        songNameTextView = findViewById(R.id.lyricsSongNameTextView); songInfoTextView = findViewById(R.id.lyricsSongInfoTextView); songLyricsTextView = findViewById(R.id.songLyrics);
         ViewCompat.setOnApplyWindowInsetsListener(constraintLayout, (view, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        PlayerManager.addOnSongChangedListener(new EmptyListener() {
-            @Override
-            public void onListenerInvoked() {
-                onSongChanged();
-            }
-        });
-        findViewById(R.id.lyricsConstraintLayout).getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+        PlaybackManager.addOnSongChangedListener(this::onSongChanged);
+        constraintLayout.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
                 onSongChanged();
@@ -80,11 +69,11 @@ public class LyricsActivity extends AppCompatActivity {
     }
 
     private void onSongChanged() {
-        if (PlayerManager.getPlayer() != null) {
-            SongData data = PlayerManager.getPlayer().getSong().getData();
-            songNameTextView.setText(data.Artist + " - " + data.Title);
-            songInfoTextView.setText(data.Album + " (" + data.Year + ")");
-            songLyricsTextView.setText("\n" + data.Lyrics + "\n");
+        if(PlaybackManager.getPlayer() != null) {
+            SongData data = PlaybackManager.getPlayer().getSong().getData();
+            songNameTextView.setText(MessageFormat.format("{0} - {1}", data.Artist, data.Title));
+            songInfoTextView.setText(MessageFormat.format("{0} ({1})", data.Album, String.valueOf(data.Year)));
+            songLyricsTextView.setText(MessageFormat.format("\n{0}\n", data.Lyrics));
         }
         scrollToTop();
     }

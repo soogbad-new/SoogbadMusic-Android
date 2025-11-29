@@ -37,7 +37,7 @@ public class SongList extends RecyclerView {
         getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                PlayerManager.setPaused(false);
+                PlaybackManager.setPaused(false);
                 int itemHeight = MyApplication.Utility.dpToPixels(50, getResources().getDisplayMetrics());
                 visibleItems = getHeight() / itemHeight;
                 getLayoutParams().height = visibleItems * itemHeight;
@@ -50,10 +50,9 @@ public class SongList extends RecyclerView {
                 getViewTreeObserver().removeOnGlobalLayoutListener(this);
             }
         });
-        getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                LinearLayoutManager layoutManager = (LinearLayoutManager)getLayoutManager();
+        getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+            LinearLayoutManager layoutManager = (LinearLayoutManager)getLayoutManager();
+            if(layoutManager != null) {
                 firstPosition = layoutManager.findFirstCompletelyVisibleItemPosition();
                 lastPosition = layoutManager.findLastCompletelyVisibleItemPosition();
             }

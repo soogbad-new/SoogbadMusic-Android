@@ -1,23 +1,24 @@
 package com.soogbad.soogbadmusic;
 
+import android.app.Activity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Hashtable;
-import java.util.Objects;
 
 public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongListViewHolder> {
 
     private ArrayList<Song> songs;
-    private Dictionary<View, Song> dictionary = new Hashtable<>();
+    private final Dictionary<View, Song> dictionary = new Hashtable<>();
 
     public static class SongListViewHolder extends RecyclerView.ViewHolder {
         public SongListViewHolder(View itemView) {
@@ -25,17 +26,14 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongLi
             nameTextView = itemView.findViewById(R.id.songListItemNameTextView);
             infoTextView = itemView.findViewById(R.id.songListItemInfoTextView);
             durationTextView = itemView.findViewById(R.id.songListItemDurationTextView);
-            durationTextView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                @Override
-                public void onGlobalLayout() {
-                    MyApplication.Utility.shortenTextViewText(nameTextView, durationTextView.getLeft() - 50);
-                    MyApplication.Utility.shortenTextViewText(infoTextView, durationTextView.getLeft() - 50);
-                }
+            durationTextView.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+                MyApplication.Utility.shortenTextViewText(nameTextView, durationTextView.getLeft() - 50);
+                MyApplication.Utility.shortenTextViewText(infoTextView, durationTextView.getLeft() - 50);
             });
         }
-        public TextView nameTextView;
-        public TextView infoTextView;
-        public TextView durationTextView;
+        public final TextView nameTextView;
+        public final TextView infoTextView;
+        public final TextView durationTextView;
         public void setTextColor(int color) {
             int c = ContextCompat.getColor(MyApplication.getAppContext(), color);
             nameTextView.setTextColor(c);
@@ -48,15 +46,18 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongLi
         this.songs = songs;
     }
 
+    @NonNull
     @Override
     public SongListViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         SongListViewHolder viewHolder = new SongListViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.song_list_item, parent, false));
-        MyApplication.Utility.getActivity(viewHolder.itemView).registerForContextMenu(viewHolder.itemView);
+        Activity activity = MyApplication.Utility.getActivity(viewHolder.itemView);
+        if(activity != null)
+            activity.registerForContextMenu(viewHolder.itemView);
         return viewHolder;
     }
 
     @Override
-    public void onBindViewHolder(SongListViewHolder viewHolder, int position) {
+    public void onBindViewHolder(@NonNull SongListViewHolder viewHolder, int position) {
         final Song song = songs.get(position);
         if(song == null) {
             dictionary.remove(viewHolder.itemView);
@@ -67,19 +68,18 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongLi
         else {
             dictionary.put(viewHolder.itemView, song);
             SongData data = song.getData();
-            viewHolder.nameTextView.setText(data.Artist + " - " + data.Title);
-            viewHolder.infoTextView.setText(data.Album + " (" + data.Year + ")");
+            viewHolder.nameTextView.setText(MessageFormat.format("{0} - {1}", data.Artist, data.Title));
+            viewHolder.infoTextView.setText(MessageFormat.format("{0} ({1})", data.Album, String.valueOf(data.Year)));
             viewHolder.durationTextView.setText(MyApplication.Utility.formatTime(song.getDuration()));
-            viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    ((MainActivity)MyApplication.Utility.getActivity(view)).searchEditTextClearFocus();
-                    PlayerManager.switchSong(song);
-                }
+            viewHolder.itemView.setOnClickListener(view -> {
+                MainActivity mainActivity = ((MainActivity)MyApplication.Utility.getActivity(view));
+                if(mainActivity != null)
+                    mainActivity.searchEditTextClearFocus();
+                PlaybackManager.switchSong(song);
             });
-            viewHolder.setTextColor(PlayerManager.getPlayer() != null && PlayerManager.getPlayer().getSong().getPath().equals(song.getPath()) ? R.color.yellow : R.color.white);
+            viewHolder.setTextColor(PlaybackManager.getPlayer() != null && PlaybackManager.getPlayer().getSong().getPath().equals(song.getPath()) ? R.color.yellow : R.color.white);
         }
-        viewHolder.itemView.setBackgroundResource(position % 2 == 0 ? R.color.lightSong : R.color.darkSong);
+        viewHolder.itemView.setBackgroundResource(viewHolder.getBindingAdapterPosition() % 2 == 0 ? R.color.lightSong : R.color.darkSong);
     }
 
     @Override

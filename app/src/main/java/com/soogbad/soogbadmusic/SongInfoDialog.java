@@ -1,7 +1,6 @@
 package com.soogbad.soogbadmusic;
 
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.text.Editable;
@@ -21,6 +20,7 @@ import org.jaudiotagger.tag.images.AndroidArtwork;
 
 import java.io.ByteArrayOutputStream;
 
+/** @noinspection CallToPrintStackTrace */
 public class SongInfoDialog {
 
     private EditText titleEditText, artistEditText, albumEditText, yearEditText, lyricsEditText;
@@ -30,83 +30,80 @@ public class SongInfoDialog {
         AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
         builder.setCancelable(false);
         builder.setTitle("Song Info - " + song.getPath());
-        builder.setView(LayoutInflater.from(mainActivity).inflate(R.layout.song_info_dialog, null));
-        builder.setPositiveButton("Save", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                boolean currentlyPlaying = PlayerManager.getPlayer() != null && PlayerManager.getPlayer().getSong() == song;
-                AudioFile file = null;
-                try {
-                    file = AudioFileIO.read(song.getFile());
-                }
-                catch(Exception e) {
-                    e.printStackTrace();
-                }
-                if(file == null)
-                    return;
-                Tag tag = file.getTag();
-                try {
-                    tag.setField(FieldKey.TITLE, titleEditText.getText().toString());
-                }
-                catch(FieldDataInvalidException e) {
-                    e.printStackTrace();
-                }
-                String artist = artistEditText.getText().toString();
-                try {
-                    tag.setField(FieldKey.ALBUM_ARTIST, artist);
-                    tag.setField(FieldKey.PERFORMER, artist);
-                }
-                catch(FieldDataInvalidException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    tag.setField(FieldKey.ALBUM, albumEditText.getText().toString());
-                }
-                catch(FieldDataInvalidException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    tag.setField(FieldKey.YEAR, yearEditText.getText().toString().equals("") ? "0" : yearEditText.getText().toString());
-                    tag.setField(FieldKey.TRACK, yearEditText.getText().toString().equals("") ? "0" : yearEditText.getText().toString());
-                }
-                catch(FieldDataInvalidException e) {
-                    e.printStackTrace();
-                }
-                tag.deleteArtworkField();
-                Bitmap bitmap = MyApplication.Utility.getBitmap(albumCoverImageButton.getDrawable());
-                if(bitmap != null) {
-                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-                    AndroidArtwork artwork = new AndroidArtwork();
-                    artwork.setBinaryData(stream.toByteArray());
-                    try {
-                        tag.setField(artwork);
-                    }
-                    catch(FieldDataInvalidException e) {
-                        e.printStackTrace();
-                    }
-                    bitmap.recycle();
-                }
-                try {
-                    tag.setField(FieldKey.LYRICS, lyricsEditText.getText().toString().replaceAll("\n", "\r\n"));
-                }
-                catch(FieldDataInvalidException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    file.commit();
-                }
-                catch(CannotWriteException e) {
-                    e.printStackTrace();
-                }
-                Playlist.getSongs().get(Playlist.getSongs().indexOf(song)).refresh();
-                Playlist.sortSongs();
-                SongList songList = mainActivity.getSongList();
-                songList.changeSongList(Playlist.getSongs(), false);
-                songList.scrollToPosition(songList.findFirstCompletelyVisibleItemPosition());
-                if(currentlyPlaying)
-                    PlayerManager.raiseOnSongChanged();
+        builder.setView(LayoutInflater.from(mainActivity).inflate(R.layout.song_info_dialog, mainActivity.findViewById(R.id.constraintLayout)));
+        builder.setPositiveButton("Save", (dialogInterface, i) -> {
+            boolean currentlyPlaying = PlaybackManager.getPlayer() != null && PlaybackManager.getPlayer().getSong() == song;
+            AudioFile file = null;
+            try {
+                file = AudioFileIO.read(song.getFile());
             }
+            catch(Exception e) {
+                e.printStackTrace();
+            }
+            if(file == null)
+                return;
+            Tag tag = file.getTag();
+            try {
+                tag.setField(FieldKey.TITLE, titleEditText.getText().toString());
+            }
+            catch(FieldDataInvalidException e) {
+                e.printStackTrace();
+            }
+            String artist = artistEditText.getText().toString();
+            try {
+                tag.setField(FieldKey.ALBUM_ARTIST, artist);
+                tag.setField(FieldKey.PERFORMER, artist);
+            }
+            catch(FieldDataInvalidException e) {
+                e.printStackTrace();
+            }
+            try {
+                tag.setField(FieldKey.ALBUM, albumEditText.getText().toString());
+            }
+            catch(FieldDataInvalidException e) {
+                e.printStackTrace();
+            }
+            try {
+                tag.setField(FieldKey.YEAR, yearEditText.getText().toString().isEmpty() ? "0" : yearEditText.getText().toString());
+                tag.setField(FieldKey.TRACK, yearEditText.getText().toString().isEmpty() ? "0" : yearEditText.getText().toString());
+            }
+            catch(FieldDataInvalidException e) {
+                e.printStackTrace();
+            }
+            tag.deleteArtworkField();
+            Bitmap bitmap = MyApplication.Utility.getBitmap(albumCoverImageButton.getDrawable());
+            if(bitmap != null) {
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                AndroidArtwork artwork = new AndroidArtwork();
+                artwork.setBinaryData(stream.toByteArray());
+                try {
+                    tag.setField(artwork);
+                }
+                catch(FieldDataInvalidException e) {
+                    e.printStackTrace();
+                }
+                bitmap.recycle();
+            }
+            try {
+                tag.setField(FieldKey.LYRICS, lyricsEditText.getText().toString().replaceAll("\n", "\r\n"));
+            }
+            catch(FieldDataInvalidException e) {
+                e.printStackTrace();
+            }
+            try {
+                file.commit();
+            }
+            catch(CannotWriteException e) {
+                e.printStackTrace();
+            }
+            Playlist.getSongs().get(Playlist.getSongs().indexOf(song)).refresh();
+            Playlist.sortSongs();
+            SongList songList = mainActivity.getSongList();
+            songList.changeSongList(Playlist.getSongs(), false);
+            songList.scrollToPosition(songList.findFirstCompletelyVisibleItemPosition());
+            if(currentlyPlaying)
+                PlaybackManager.raiseOnSongChanged();
         });
         builder.setNegativeButton("Cancel", null);
         final AlertDialog dialog = builder.show();
@@ -128,12 +125,7 @@ public class SongInfoDialog {
             public void afterTextChanged(Editable editable) { }
         });
         albumCoverImageButton.setImageBitmap(song.getData().AlbumCover);
-        albumCoverImageButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mainActivity.pickImageDialog(SongInfoDialog.this);
-            }
-        });
+        albumCoverImageButton.setOnClickListener(view -> mainActivity.pickImageDialog(SongInfoDialog.this));
         lyricsEditText.setText(song.getData().Lyrics.replaceAll("\r", ""));
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -143,22 +135,17 @@ public class SongInfoDialog {
                 if(titleEditText.getText().toString().equals(data.Title) && artistEditText.getText().toString().equals(data.Artist) && albumEditText.getText().toString().equals(data.Album) && yearEditText.getText().toString().equals(String.valueOf(data.Year)) && ((bitmap == null && data.AlbumCover == null) || (bitmap != null && bitmap.sameAs(data.AlbumCover))) && lyricsEditText.getText().toString().equals(data.Lyrics))
                     dialog.dismiss();
                 else {
-                    AlertDialog.Builder builder1 = new AlertDialog.Builder(mainActivity);
-                    builder1.setCancelable(false);
-                    builder1.setTitle("Exit Dialog");
-                    builder1.setMessage("Are you sure you want to exit?");
-                    builder1.setPositiveButton("Exit", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            dialog.dismiss();
-                        }
-                    });
-                    builder1.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) { }
-                    });
-                    builder1.show();
+                    getBuilder().show();
                 }
+            }
+            private AlertDialog.Builder getBuilder() {
+                AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
+                builder.setCancelable(false);
+                builder.setTitle("Exit Dialog");
+                builder.setMessage("Are you sure you want to exit?");
+                builder.setPositiveButton("Exit", (dialogInterface, i) -> dialog.dismiss());
+                builder.setNegativeButton("Cancel", (dialogInterface, i) -> { });
+                return builder;
             }
         });
     }

@@ -1,11 +1,6 @@
 package com.soogbad.soogbadmusic;
 
-import static androidx.core.content.ContextCompat.getSystemService;
-
-import android.content.Context;
-import android.media.AudioDeviceCallback;
-import android.media.AudioDeviceInfo;
-import android.media.AudioManager;
+import android.media.AudioAttributes;
 import android.media.MediaPlayer;
 import android.net.Uri;
 
@@ -14,36 +9,29 @@ import java.util.ArrayList;
 
 public class Player {
 
-    private Song song;
-    private boolean paused;
+    private final Song song;
     private boolean stopped = false;
-    private MediaPlayer mediaPlayer;
+    private final MediaPlayer mediaPlayer;
 
-    private ArrayList<EmptyListener> onPlaybackCompletedListeners = new ArrayList<>();
+    private final ArrayList<EmptyListener> onPlaybackCompletedListeners = new ArrayList<>();
     public void addOnPlaybackCompletedListener(EmptyListener listener) {
         onPlaybackCompletedListeners.add(listener);
     }
 
+    /** @noinspection CallToPrintStackTrace*/
     public Player(Song song) {
         this.song = song;
-        paused = true;
         mediaPlayer = new MediaPlayer();
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mediaPlayer) {
-                stopped = true;
-                for(EmptyListener listener : onPlaybackCompletedListeners)
-                    listener.onListenerInvoked();
-            }
+        mediaPlayer.setAudioAttributes(new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build());
+        mediaPlayer.setOnCompletionListener(mediaPlayer -> {
+            stopped = true;
+            for(EmptyListener listener : onPlaybackCompletedListeners)
+                listener.onListenerInvoked();
         });
-        mediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
-            @Override
-            public boolean onError(MediaPlayer mediaPlayer, int errorType, int extraErrorCode) {
-                for(EmptyListener listener : onPlaybackCompletedListeners)
-                    listener.onListenerInvoked();
-                return false;
-            }
+        mediaPlayer.setOnErrorListener((mediaPlayer, errorType, extraErrorCode) -> {
+            for(EmptyListener listener : onPlaybackCompletedListeners)
+                listener.onListenerInvoked();
+            return false;
         });
         try {
             mediaPlayer.setDataSource(MyApplication.getAppContext(), Uri.fromFile(song.getFile()));
@@ -56,9 +44,6 @@ public class Player {
         return song;
     }
     public boolean getStopped() { return stopped; }
-    public boolean getPaused() {
-        return paused;
-    }
     public double getCurrentTime() {
         if(stopped)
             return getSong().getDuration();
@@ -71,11 +56,9 @@ public class Player {
     }
 
     public void play() {
-        paused = false;
         mediaPlayer.start();
     }
     public void pause() {
-        paused = true;
         mediaPlayer.pause();
     }
 

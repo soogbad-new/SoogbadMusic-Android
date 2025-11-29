@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_marginTop="10dp"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:ignore="HardcodedText,RtlHardcoded">
 
     <TextView
         android:id="@+id/experimentalTextView"
@@ -22,6 +24,7 @@
         android:layout_marginLeft="5dp"
         android:text="Title: "
         android:textSize="16sp"
+        android:labelFor="@id/titleEditText"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="@id/titleEditText"
         app:layout_constraintBottom_toBottomOf="@+id/titleEditText" />
@@ -34,6 +37,7 @@
         android:inputType="text"
         android:textSize="14sp"
         android:textColor="@color/black"
+        android:autofillHints=""
         app:layout_constraintLeft_toLeftOf="@id/albumEditText"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/experimentalTextView" />
@@ -45,6 +49,7 @@
         android:layout_marginLeft="5dp"
         android:text="Artist: "
         android:textSize="16sp"
+        android:labelFor="@id/artistEditText"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="@id/artistEditText"
         app:layout_constraintBottom_toBottomOf="@+id/artistEditText" />
@@ -57,6 +62,7 @@
         android:inputType="text"
         android:textSize="14sp"
         android:textColor="@color/black"
+        android:autofillHints=""
         app:layout_constraintLeft_toLeftOf="@id/albumEditText"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/titleEditText" />
@@ -68,6 +74,7 @@
         android:layout_marginLeft="5dp"
         android:text="Album: "
         android:textSize="16sp"
+        android:labelFor="@id/albumEditText"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="@id/albumEditText"
         app:layout_constraintBottom_toBottomOf="@+id/albumEditText" />
@@ -80,6 +87,7 @@
         android:inputType="text"
         android:textSize="14sp"
         android:textColor="@color/black"
+        android:autofillHints=""
         app:layout_constraintLeft_toRightOf="@id/albumTextView"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/artistEditText" />
@@ -91,6 +99,7 @@
         android:layout_marginLeft="5dp"
         android:text="Year: "
         android:textSize="16sp"
+        android:labelFor="@id/yearEditText"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="@id/yearEditText"
         app:layout_constraintBottom_toBottomOf="@+id/yearEditText" />
@@ -103,6 +112,7 @@
         android:inputType="number"
         android:textSize="14sp"
         android:textColor="@color/black"
+        android:autofillHints=""
         app:layout_constraintLeft_toLeftOf="@id/albumEditText"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/albumEditText" />
@@ -123,6 +133,7 @@
         android:layout_height="75dp"
         android:layout_marginTop="5dp"
         android:scaleType="fitXY"
+        android:contentDescription="Album Cover Preview"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/albumCoverTextView" />

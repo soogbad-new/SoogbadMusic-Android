@@ -11,10 +11,10 @@ public class SongData {
         Title = title != null ? title : ""; Artist = artist != null ? artist : ""; Album = album != null ? album : ""; Year = year; AlbumCover = albumCover; Lyrics = lyrics != null ? lyrics : "";
     }
 
-    public String Title;
-    public String Artist;
-    public String Album;
-    public int Year;
+    public final String Title;
+    public final String Artist;
+    public final String Album;
+    public final int Year;
     public Bitmap AlbumCover;
     public String Lyrics;
 
@@ -39,14 +39,14 @@ public class SongData {
     private final ArrayList<Byte> CHARACTERS = new ArrayList<>(Arrays.asList(Character.DASH_PUNCTUATION, Character.START_PUNCTUATION, Character.END_PUNCTUATION, Character.CONNECTOR_PUNCTUATION, Character.OTHER_PUNCTUATION, Character.INITIAL_QUOTE_PUNCTUATION, Character.FINAL_QUOTE_PUNCTUATION, Character.MATH_SYMBOL, Character.CURRENCY_SYMBOL, Character.MODIFIER_SYMBOL, Character.OTHER_SYMBOL));
     private String removeSpecialCharacters(String str)
     {
-        String ret = "";
+        StringBuilder ret = new StringBuilder();
         for(char chr : str.toCharArray())
             if(!CHARACTERS.contains((byte)Character.getType(chr)))
-                ret += chr;
-        ret = ret.replace((char)10, ' ');
-        ret = ret.replace((char)13, '~');
-        ret = ret.replace("~", " ");
-        return ret;
+                ret.append(chr);
+        String retStr = ret.toString().replace((char)10, ' ');
+        retStr = retStr.replace((char)13, '~');
+        retStr = retStr.replace("~", " ");
+        return retStr;
     }
 
 }

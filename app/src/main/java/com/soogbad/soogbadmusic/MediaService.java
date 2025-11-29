@@ -18,9 +18,9 @@ public class MediaService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null && intent.getAction() != null) {
             if(intent.getAction().equals("com.app.soogbadmusic.ACTION_PREV"))
-                PlayerManager.previousSong();
+                PlaybackManager.previousSong();
             else if(intent.getAction().equals("com.app.soogbadmusic.ACTION_NEXT"))
-                PlayerManager.nextSong();
+                PlaybackManager.nextSong();
         }
         return START_STICKY;
     }

@@ -10,10 +10,11 @@ import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.images.Artwork;
 
 import java.io.File;
+import java.io.IOException;
 
 public final class Song {
 
-    private File file;
+    private final File file;
     private double duration;
     private SongData data;
     private boolean refreshedAlbumCoverAndLyrics = false;
@@ -26,11 +27,17 @@ public final class Song {
     public void refresh() {
         if(!file.exists())
             return;
-        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-        retriever.setDataSource(getPath());
-        duration = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)) / 1000.0;
-        String year = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CD_TRACK_NUMBER);
-        data = new SongData(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE), retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST), retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM), year != null ? Integer.parseInt(year) : 0, null, "");
+        try(MediaMetadataRetriever retriever = new MediaMetadataRetriever()) {
+            retriever.setDataSource(getPath());
+            String durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+            duration = durationStr != null ? Integer.parseInt(durationStr) / 1000.0 : 0;
+            String year = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CD_TRACK_NUMBER);
+            data = new SongData(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE), retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST), retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM), year != null ? Integer.parseInt(year) : 0, null, "");
+        }
+        catch(IOException e) {
+            //noinspection CallToPrintStackTrace
+            e.printStackTrace();
+        }
     }
 
     public void refreshAlbumCoverAndLyrics(boolean refreshSongList) {
@@ -39,6 +46,7 @@ public final class Song {
             file = AudioFileIO.read(getFile());
         }
         catch(Exception e) {
+            //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
         if(file == null)
@@ -48,8 +56,8 @@ public final class Song {
         data.AlbumCover = artwork != null ? BitmapFactory.decodeByteArray(artwork.getBinaryData(), 0, artwork.getBinaryData().length) : null;
         data.Lyrics = tag.getFirst(FieldKey.LYRICS);
         refreshedAlbumCoverAndLyrics = true;
-        if((PlayerManager.getPlayer() != null && PlayerManager.getPlayer().getSong() == this) && (data.AlbumCover != null || data.Lyrics != "") && refreshSongList)
-            PlayerManager.raiseOnSongChanged();
+        if(PlaybackManager.getPlayer() != null && PlaybackManager.getPlayer().getSong() == this && (data.AlbumCover != null || !data.Lyrics.isEmpty()) && refreshSongList)
+            PlaybackManager.raiseOnSongChanged();
     }
 
     public File getFile() {
@@ -68,8 +76,8 @@ public final class Song {
         return data;
     }
 
-    public boolean getRefreshedAlbumCoverAndLyrics() {
-        return refreshedAlbumCoverAndLyrics;
+    public boolean hasNotRefreshedAlbumCoverAndLyrics() {
+        return !refreshedAlbumCoverAndLyrics;
     }
 
 }
