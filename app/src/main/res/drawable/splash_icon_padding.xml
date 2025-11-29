@@ -1,0 +1,8 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:drawable="@drawable/splash_icon"
+        android:top="50dp"
+        android:bottom="50dp"
+        android:left="50dp"
+        android:right="50dp" />
+</layer-list>
