@@ -1,7 +1,21 @@
 package com.soogbad.soogbadmusic;
 
+import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.media.MediaMetadata;
+import android.media.session.MediaController;
 import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
+import android.support.v4.media.session.MediaSessionCompat;
+
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -15,6 +29,7 @@ public class PlaybackManager {
     private static boolean shuffle = false;
     private static boolean filter = true;
     private static final ArrayList<Song> queue = new ArrayList<>();
+    private static MediaSession mediaSession = null;
 
     private static final ArrayList<EmptyListener> onPausedValueChangedListeners = new ArrayList<>();
     public static void addOnPausedValueChangedListener(EmptyListener listener) {
@@ -27,16 +42,14 @@ public class PlaybackManager {
     public static void raiseOnSongChanged() {
         for(EmptyListener listener : onSongChangedListeners)
             listener.onListenerInvoked();
+        updateMediaSessionNotificationData();
     }
     private static void raiseOnPausedValueChanged() {
         for(EmptyListener listener : onPausedValueChangedListeners)
             listener.onListenerInvoked();
     }
 
-    private static MediaSession mediaSession = null;
-    public static void setMediaSession(MediaSession mediaSession) { PlaybackManager.mediaSession = mediaSession; }
-
-
+    public static MediaSession getMediaSession() { return mediaSession; }
     public static Player getPlayer() { return player; }
 
     public static boolean getShuffle() { return shuffle; }
@@ -158,6 +171,52 @@ public class PlaybackManager {
     }
     public static boolean queueContains(Song song) {
         return queue.contains(song);
+    }
+
+    public static void setCurrentTime(double time) {
+        getPlayer().setCurrentTime(time);
+        if(mediaSession != null)
+            mediaSession.setPlaybackState(new PlaybackState.Builder().setActions(PlaybackState.ACTION_PLAY | PlaybackState.ACTION_PAUSE | PlaybackState.ACTION_PLAY_PAUSE | PlaybackState.ACTION_SKIP_TO_PREVIOUS | PlaybackState.ACTION_SKIP_TO_NEXT).setState(PlaybackManager.getPaused() ? PlaybackState.STATE_PAUSED : PlaybackState.STATE_PLAYING, (long) (1000 * PlaybackManager.getPlayer().getCurrentTime()), PlaybackManager.getPaused() ? 0 : 1).build());
+    }
+
+    public static void initMediaSessionNotification(MainActivity mainActivity) {
+        NotificationManager notificationManager = MyApplication.getAppContext().getSystemService(NotificationManager.class);
+        mediaSession = new MediaSession(MyApplication.getAppContext(), "SoogbadMusic");
+        mediaSession.setCallback(new MediaSession.Callback() {
+            @Override
+            public void onPlay() { PlaybackManager.setPaused(false); }
+            @Override
+            public void onPause() { PlaybackManager.setPaused(true); }
+            @Override
+            public void onSkipToNext() { PlaybackManager.nextSong(); }
+            @Override
+            public void onSkipToPrevious() { PlaybackManager.previousSong(); }
+            @Override
+            public void onStop() { notificationManager.cancel(6969); mainActivity.finishAndRemoveTask(); }
+        });
+        mediaSession.setActive(true);
+        new MediaController(MyApplication.getAppContext(), mediaSession.getSessionToken()).registerCallback(new MediaController.Callback() {
+            @Override
+            public void onPlaybackStateChanged(@Nullable PlaybackState state) { super.onPlaybackStateChanged(state); }
+            @Override
+            public void onMetadataChanged(@Nullable MediaMetadata metadata) { super.onMetadataChanged(metadata); }
+        });
+        mediaSession.setPlaybackState(new PlaybackState.Builder().setActions(PlaybackState.ACTION_PLAY_PAUSE | PlaybackState.ACTION_SKIP_TO_PREVIOUS | PlaybackState.ACTION_SKIP_TO_NEXT).setState(PlaybackState.STATE_NONE, PlaybackState.PLAYBACK_POSITION_UNKNOWN, 0).build());
+        notificationManager.createNotificationChannel(new NotificationChannel("soogbadmusic", "SoogbadMusic", NotificationManager.IMPORTANCE_DEFAULT));
+    }
+    private static void updateMediaSessionNotificationData() {
+        SongData data = getPlayer().getSong().getData();
+        mediaSession.setMetadata(new MediaMetadata.Builder().putLong(MediaMetadata.METADATA_KEY_DURATION, (long)(PlaybackManager.getPlayer().getSong().getDuration() * 1000)).putString(MediaMetadata.METADATA_KEY_TITLE, data.Title).putString(MediaMetadata.METADATA_KEY_ARTIST, data.Artist).putString(MediaMetadata.METADATA_KEY_ALBUM, data.Album).putLong(MediaMetadata.METADATA_KEY_YEAR, data.Year).putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, data.AlbumCover).build());
+        mediaSession.setPlaybackState(new PlaybackState.Builder().setActions(PlaybackState.ACTION_PLAY | PlaybackState.ACTION_PAUSE | PlaybackState.ACTION_PLAY_PAUSE | PlaybackState.ACTION_SKIP_TO_PREVIOUS | PlaybackState.ACTION_SKIP_TO_NEXT).setState(PlaybackManager.getPaused() ? PlaybackState.STATE_PAUSED : PlaybackState.STATE_PLAYING, (long)(1000 * PlaybackManager.getPlayer().getCurrentTime()), PlaybackManager.getPaused() ? 0 : 1).build());
+        Intent prevActionIntent = new Intent(MyApplication.getAppContext(), MediaService.class).setAction("com.app.soogbadmusic.ACTION_PREV");
+        Intent nextActionIntent = new Intent(MyApplication.getAppContext(), MediaService.class).setAction("com.app.soogbadmusic.ACTION_NEXT");
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(MyApplication.getAppContext(), "soogbadmusic")
+                .setSmallIcon(R.drawable.ic_launcher).setLargeIcon(data.AlbumCover).setContentTitle(data.Artist + " - " + data.Title).setContentText(data.Album + " (" + data.Year + ")")
+                .setPriority(NotificationCompat.PRIORITY_HIGH).setOngoing(true).setStyle(new androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(MediaSessionCompat.Token.fromToken(mediaSession.getSessionToken())))
+                .addAction(new NotificationCompat.Action(R.drawable.previous, "Previous", PendingIntent.getService(MyApplication.getAppContext(), 0, prevActionIntent, PendingIntent.FLAG_IMMUTABLE)))
+                .addAction(new NotificationCompat.Action(R.drawable.next, "Next", PendingIntent.getService(MyApplication.getAppContext(), 0, nextActionIntent, PendingIntent.FLAG_IMMUTABLE)));
+        if(ActivityCompat.checkSelfPermission(MyApplication.getAppContext(), Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
+            NotificationManagerCompat.from(MyApplication.getAppContext()).notify(6969, builder.build());
     }
 
 }

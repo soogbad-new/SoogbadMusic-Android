@@ -2,9 +2,6 @@ package com.soogbad.soogbadmusic;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -14,10 +11,6 @@ import android.graphics.drawable.Drawable;
 import android.media.AudioDeviceCallback;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
-import android.media.MediaMetadata;
-import android.media.session.MediaController;
-import android.media.session.MediaSession;
-import android.media.session.PlaybackState;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -25,7 +18,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.provider.Settings;
-import android.support.v4.media.session.MediaSessionCompat;
 import android.telephony.TelephonyCallback;
 import android.telephony.TelephonyManager;
 import android.text.Editable;
@@ -45,14 +37,11 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -78,8 +67,6 @@ public class MainActivity extends AppCompatActivity {
     private SongList songList;
     private EditText searchEditText;
 
-    private MediaSession mediaSession;
-    private NotificationManager notificationManager;
     private Drawable defaultSearchbarBackground;
     private int defaultSearchbarHeight = 0, previousCallState = TelephonyManager.CALL_STATE_IDLE;
     private boolean advancedSearch = false, startedLyrics = false, wasPausedBeforeCall = true;
@@ -119,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void onPermissionsGranted() {
-        initMediaSessionNotification();
+        PlaybackManager.initMediaSessionNotification(this);
         ((TelephonyManager)getSystemService(TELEPHONY_SERVICE)).registerTelephonyCallback(getMainExecutor(), telephonyCallback);
         AudioManager audioManager = (AudioManager)getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
         AudioDeviceCallback audioDeviceCallback = new AudioDeviceCallback() {
@@ -138,32 +125,6 @@ public class MainActivity extends AppCompatActivity {
         }, 0, 10);
         PlaybackManager.addOnSongChangedListener(this::onSongChanged);
         PlaybackManager.addOnPausedValueChangedListener(this::onPausedValueChanged);
-    }
-    private void initMediaSessionNotification() {
-        notificationManager = getSystemService(NotificationManager.class);
-        mediaSession = new MediaSession(this, "SoogbadMusic");
-        mediaSession.setCallback(new MediaSession.Callback() {
-            @Override
-            public void onPlay() { PlaybackManager.setPaused(false); }
-            @Override
-            public void onPause() { PlaybackManager.setPaused(true); }
-            @Override
-            public void onSkipToNext() { PlaybackManager.nextSong(); }
-            @Override
-            public void onSkipToPrevious() { PlaybackManager.previousSong(); }
-            @Override
-            public void onStop() { notificationManager.cancel(6969); finishAndRemoveTask(); }
-        });
-        mediaSession.setActive(true);
-        PlaybackManager.setMediaSession(mediaSession);
-        new MediaController(MainActivity.this, mediaSession.getSessionToken()).registerCallback(new MediaController.Callback() {
-            @Override
-            public void onPlaybackStateChanged(@Nullable PlaybackState state) { super.onPlaybackStateChanged(state); }
-            @Override
-            public void onMetadataChanged(@Nullable MediaMetadata metadata) { super.onMetadataChanged(metadata); }
-        });
-        mediaSession.setPlaybackState(new PlaybackState.Builder().setActions(PlaybackState.ACTION_PLAY_PAUSE | PlaybackState.ACTION_SKIP_TO_PREVIOUS | PlaybackState.ACTION_SKIP_TO_NEXT).setState(PlaybackState.STATE_NONE, PlaybackState.PLAYBACK_POSITION_UNKNOWN, 0).build());
-        notificationManager.createNotificationChannel(new NotificationChannel("soogbadmusic", "SoogbadMusic", NotificationManager.IMPORTANCE_DEFAULT));
     }
 
     private void onTimerTick() {
@@ -228,20 +189,6 @@ public class MainActivity extends AppCompatActivity {
         songNameTextView.setText(MessageFormat.format("{0} - {1}", data.Artist, data.Title));
         songInfoTextView.setText(MessageFormat.format("{0} ({1})", data.Album, String.valueOf(data.Year)));
         albumCoverImageView.setImageBitmap(data.AlbumCover);
-        updateMediaSessionSong(data);
-    }
-    private void updateMediaSessionSong(SongData data) {
-        mediaSession.setMetadata(new MediaMetadata.Builder().putLong(MediaMetadata.METADATA_KEY_DURATION, (long) (PlaybackManager.getPlayer().getSong().getDuration() * 1000)).putString(MediaMetadata.METADATA_KEY_TITLE, data.Title).putString(MediaMetadata.METADATA_KEY_ARTIST, data.Artist).putString(MediaMetadata.METADATA_KEY_ALBUM, data.Album).putLong(MediaMetadata.METADATA_KEY_YEAR, data.Year).putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, data.AlbumCover).build());
-        mediaSession.setPlaybackState(new PlaybackState.Builder().setActions(PlaybackState.ACTION_PLAY | PlaybackState.ACTION_PAUSE | PlaybackState.ACTION_PLAY_PAUSE | PlaybackState.ACTION_SKIP_TO_PREVIOUS | PlaybackState.ACTION_SKIP_TO_NEXT).setState(PlaybackManager.getPaused() ? PlaybackState.STATE_PAUSED : PlaybackState.STATE_PLAYING, (long) (1000 * PlaybackManager.getPlayer().getCurrentTime()), PlaybackManager.getPaused() ? 0 : 1).build());
-        Intent prevActionIntent = new Intent(getApplicationContext(), MediaService.class).setAction("com.app.soogbadmusic.ACTION_PREV");
-        Intent nextActionIntent = new Intent(getApplicationContext(), MediaService.class).setAction("com.app.soogbadmusic.ACTION_NEXT");
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "soogbadmusic")
-                .setSmallIcon(R.drawable.ic_launcher).setLargeIcon(data.AlbumCover).setContentTitle(data.Artist + " - " + data.Title).setContentText(data.Album + " (" + data.Year + ")")
-                .setPriority(NotificationCompat.PRIORITY_HIGH).setOngoing(true).setStyle(new androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(MediaSessionCompat.Token.fromToken(mediaSession.getSessionToken())))
-                .addAction(new NotificationCompat.Action(R.drawable.previous, "Previous", PendingIntent.getService(getApplicationContext(), 0, prevActionIntent, PendingIntent.FLAG_IMMUTABLE)))
-                .addAction(new NotificationCompat.Action(R.drawable.next, "Next", PendingIntent.getService(getApplicationContext(), 0, nextActionIntent, PendingIntent.FLAG_IMMUTABLE)));
-        if(ActivityCompat.checkSelfPermission(MyApplication.getAppContext(), Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
-            NotificationManagerCompat.from(getApplicationContext()).notify(6969, builder.build());
     }
 
     private float progressBarTouchLocation = -1;
@@ -267,9 +214,7 @@ public class MainActivity extends AppCompatActivity {
                     time = 0;
                 if(PlaybackManager.getPlayer().getStopped())
                     PlaybackManager.switchSong(PlaybackManager.getPlayer().getSong());
-                PlaybackManager.getPlayer().setCurrentTime(time);
-                if(mediaSession != null)
-                    mediaSession.setPlaybackState(new PlaybackState.Builder().setActions(PlaybackState.ACTION_PLAY | PlaybackState.ACTION_PAUSE | PlaybackState.ACTION_PLAY_PAUSE | PlaybackState.ACTION_SKIP_TO_PREVIOUS | PlaybackState.ACTION_SKIP_TO_NEXT).setState(PlaybackManager.getPaused() ? PlaybackState.STATE_PAUSED : PlaybackState.STATE_PLAYING, (long) (1000 * PlaybackManager.getPlayer().getCurrentTime()), PlaybackManager.getPaused() ? 0 : 1).build());
+                PlaybackManager.setCurrentTime(time);
             }
         }
     };
@@ -511,8 +456,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if(mediaSession != null)
-            mediaSession.release();
+        if(PlaybackManager.getMediaSession() != null)
+            PlaybackManager.getMediaSession().release();
         if(PlaybackManager.getPlayer() != null)
             PlaybackManager.getPlayer().release();
         ((TelephonyManager)getSystemService(TELEPHONY_SERVICE)).unregisterTelephonyCallback(telephonyCallback);
