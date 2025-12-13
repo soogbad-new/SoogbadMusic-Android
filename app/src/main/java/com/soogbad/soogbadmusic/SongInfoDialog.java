@@ -65,7 +65,6 @@ public class SongInfoDialog {
             }
             try {
                 tag.setField(FieldKey.YEAR, yearEditText.getText().toString().isEmpty() ? "0" : yearEditText.getText().toString());
-                tag.setField(FieldKey.TRACK, yearEditText.getText().toString().isEmpty() ? "0" : yearEditText.getText().toString());
             }
             catch(FieldDataInvalidException e) {
                 e.printStackTrace();
@@ -97,7 +96,7 @@ public class SongInfoDialog {
             catch(CannotWriteException e) {
                 e.printStackTrace();
             }
-            Playlist.getSongs().get(Playlist.getSongs().indexOf(song)).refresh();
+            Playlist.getSongs().get(Playlist.getSongs().indexOf(song)).refreshData();
             Playlist.sortSongs();
             SongList songList = mainActivity.getSongList();
             songList.changeSongList(Playlist.getSongs(), false);

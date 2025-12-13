@@ -49,19 +49,18 @@ public class Playlist {
         lastRefreshThread = new Thread(() -> {
             songs = new ArrayList<>();
             ArrayList<Path> files = new ArrayList<>();
-            try(DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(directory.getAbsolutePath()), "*.mp3")) {
-                if(!PlaybackManager.getFilter())
-                    stream.forEach(files::add);
-                else
-                    for(Path filePath : stream)
-                        if(!filePath.getFileName().toString().startsWith("_"))
-                            files.add(filePath);
+            try(DirectoryStream<Path> stream = PlaybackManager.getFilter()
+                    ? Files.newDirectoryStream(Paths.get(directory.getAbsolutePath()), filePath -> {
+                String filename = filePath.getFileName().toString(); return !filename.startsWith("_") && filename.endsWith(".mp3");
+            })
+                    : Files.newDirectoryStream(Paths.get(directory.getAbsolutePath()), "*.mp3")) {
+                stream.forEach(files::add);
             } catch(IOException e) { throw new RuntimeException(); }
             int i = 0;
-            for(Path file : files) {
+            for(Path filePath : files) {
                 if(stopLastRefresh)
                     return;
-                songs.add(new Song(file.toFile()));
+                songs.add(new Song(filePath.toFile()));
                 isAccessingRefreshSongsProgress = true;
                 refreshSongsProgress = (double)i / files.size();
                 isAccessingRefreshSongsProgress = false;
@@ -69,12 +68,6 @@ public class Playlist {
             }
             sortSongs();
             refreshSongsComplete = true;
-            for(Song song : songs) {
-                if(stopLastRefresh)
-                    return;
-                if(song.hasNotRefreshedAlbumCoverAndLyrics())
-                    song.refreshAlbumCoverAndLyrics(false);
-            }
         });
         lastRefreshThread.start();
     }

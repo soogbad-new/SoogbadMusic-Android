@@ -40,6 +40,8 @@ public class PlaybackManager {
         onSongChangedListeners.add(listener);
     }
     public static void raiseOnSongChanged() {
+        if(getPlayer().getSong().getData().AlbumCover == null || getPlayer().getSong().getData().Lyrics.isEmpty())
+            getPlayer().getSong().loadAlbumCoverAndLyrics();
         for(EmptyListener listener : onSongChangedListeners)
             listener.onListenerInvoked();
         updateMediaSessionNotificationData();
@@ -88,8 +90,6 @@ public class PlaybackManager {
         player.addOnPlaybackCompletedListener(PlaybackManager::nextSong);
         if(!paused)
             player.play();
-        if(player.getSong().hasNotRefreshedAlbumCoverAndLyrics())
-            player.getSong().refreshAlbumCoverAndLyrics(true);
     }
 
     public static void nextSong() {
