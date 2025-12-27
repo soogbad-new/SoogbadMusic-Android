@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginTop="10dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:ignore="HardcodedText,RtlHardcoded">
+
+    <TextView
+        android:id="@+id/experimentalTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="This feature is experimental. Do not use"
+        android:textSize="14sp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/titleTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp"
+        android:text="Title: "
+        android:textSize="16sp"
+        android:labelFor="@id/titleEditText"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="@id/titleEditText"
+        app:layout_constraintBottom_toBottomOf="@+id/titleEditText" />
+    <EditText
+        android:id="@+id/titleEditText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="5dp"
+        android:inputType="text"
+        android:textSize="14sp"
+        android:textColor="@color/black"
+        android:autofillHints=""
+        app:layout_constraintLeft_toLeftOf="@id/albumEditText"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/experimentalTextView" />
+
+    <TextView
+        android:id="@+id/artistTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp"
+        android:text="Artist: "
+        android:textSize="16sp"
+        android:labelFor="@id/artistEditText"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="@id/artistEditText"
+        app:layout_constraintBottom_toBottomOf="@+id/artistEditText" />
+    <EditText
+        android:id="@+id/artistEditText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="5dp"
+        android:inputType="text"
+        android:textSize="14sp"
+        android:textColor="@color/black"
+        android:autofillHints=""
+        app:layout_constraintLeft_toLeftOf="@id/albumEditText"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/titleEditText" />
+
+    <TextView
+        android:id="@+id/albumTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp"
+        android:text="Album: "
+        android:textSize="16sp"
+        android:labelFor="@id/albumEditText"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="@id/albumEditText"
+        app:layout_constraintBottom_toBottomOf="@+id/albumEditText" />
+    <EditText
+        android:id="@+id/albumEditText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="5dp"
+        android:inputType="text"
+        android:textSize="14sp"
+        android:textColor="@color/black"
+        android:autofillHints=""
+        app:layout_constraintLeft_toRightOf="@id/albumTextView"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/artistEditText" />
+
+    <TextView
+        android:id="@+id/yearTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp"
+        android:text="Year: "
+        android:textSize="16sp"
+        android:labelFor="@id/yearEditText"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="@id/yearEditText"
+        app:layout_constraintBottom_toBottomOf="@+id/yearEditText" />
+    <EditText
+        android:id="@+id/yearEditText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="5dp"
+        android:inputType="number"
+        android:textSize="14sp"
+        android:textColor="@color/black"
+        android:autofillHints=""
+        app:layout_constraintLeft_toLeftOf="@id/albumEditText"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/albumEditText" />
+
+    <TextView
+        android:id="@+id/albumCoverTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="Album Cover:"
+        android:textSize="16sp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/yearEditText" />
+    <ImageView
+        android:id="@+id/albumCoverImageButton"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_marginTop="5dp"
+        android:scaleType="fitXY"
+        android:contentDescription="Album Cover Preview"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/albumCoverTextView" />
+
+    <androidx.appcompat.widget.AppCompatEditText
+        android:id="@+id/lyricsEditText"
+        android:layout_width="0dp"
+        android:layout_height="200dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:inputType="textMultiLine"
+        android:textSize="12sp"
+        android:scrollbars="vertical|horizontal"
+        android:theme="@android:style/Theme.InputMethod"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/albumCoverImageButton" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
