@@ -98,4 +98,8 @@ public class SongList extends RecyclerView {
         changeSongList(songs, true);
     }
 
+    public void reset() {
+        setAdapter(null);
+    }
+
 }

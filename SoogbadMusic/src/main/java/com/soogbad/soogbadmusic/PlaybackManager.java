@@ -208,8 +208,8 @@ public class PlaybackManager {
         SongData data = getPlayer().getSong().getData();
         mediaSession.setMetadata(new MediaMetadata.Builder().putLong(MediaMetadata.METADATA_KEY_DURATION, (long)(PlaybackManager.getPlayer().getSong().getDuration() * 1000)).putString(MediaMetadata.METADATA_KEY_TITLE, data.Title).putString(MediaMetadata.METADATA_KEY_ARTIST, data.Artist).putString(MediaMetadata.METADATA_KEY_ALBUM, data.Album).putLong(MediaMetadata.METADATA_KEY_YEAR, data.Year).putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, data.AlbumCover).build());
         mediaSession.setPlaybackState(new PlaybackState.Builder().setActions(PlaybackState.ACTION_PLAY | PlaybackState.ACTION_PAUSE | PlaybackState.ACTION_PLAY_PAUSE | PlaybackState.ACTION_SKIP_TO_PREVIOUS | PlaybackState.ACTION_SKIP_TO_NEXT).setState(PlaybackManager.getPaused() ? PlaybackState.STATE_PAUSED : PlaybackState.STATE_PLAYING, (long)(1000 * PlaybackManager.getPlayer().getCurrentTime()), PlaybackManager.getPaused() ? 0 : 1).build());
-        Intent prevActionIntent = new Intent(SoogbadMusicApplication.getAppContext(), MediaService.class).setAction("com.app.soogbadmusic.ACTION_PREV");
-        Intent nextActionIntent = new Intent(SoogbadMusicApplication.getAppContext(), MediaService.class).setAction("com.app.soogbadmusic.ACTION_NEXT");
+        Intent prevActionIntent = new Intent(SoogbadMusicApplication.getAppContext(), MusicService.class).setAction("com.app.soogbadmusic.ACTION_PREV");
+        Intent nextActionIntent = new Intent(SoogbadMusicApplication.getAppContext(), MusicService.class).setAction("com.app.soogbadmusic.ACTION_NEXT");
         NotificationCompat.Builder builder = new NotificationCompat.Builder(SoogbadMusicApplication.getAppContext(), "soogbadmusic")
                 .setSmallIcon(R.drawable.ic_launcher).setLargeIcon(data.AlbumCover).setContentTitle(data.Artist + " - " + data.Title).setContentText(data.Album + " (" + data.Year + ")")
                 .setPriority(NotificationCompat.PRIORITY_HIGH).setOngoing(true).setStyle(new androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(MediaSessionCompat.Token.fromToken(mediaSession.getSessionToken())))

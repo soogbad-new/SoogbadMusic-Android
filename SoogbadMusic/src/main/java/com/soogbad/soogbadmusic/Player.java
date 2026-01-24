@@ -29,6 +29,7 @@ public class Player {
                 listener.onListenerInvoked();
         });
         mediaPlayer.setOnErrorListener((mediaPlayer, errorType, extraErrorCode) -> {
+            stopped = true;
             for(EmptyListener listener : onPlaybackCompletedListeners)
                 listener.onListenerInvoked();
             return false;

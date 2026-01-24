@@ -1,17 +1,33 @@
 package com.soogbad.soogbadmusic;
 
-import android.app.Service;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.media.MediaBrowserCompat;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.media.MediaBrowserServiceCompat;
 
-public class MediaService extends Service {
+import java.util.List;
+
+public class MusicService extends MediaBrowserServiceCompat {
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    @Nullable
+    @Override
+    public BrowserRoot onGetRoot(@NonNull String clientPackageName, int clientUid, @Nullable Bundle rootHints) {
+        return null;
+    }
+
+    @Override
+    public void onLoadChildren(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
+
     }
 
     @Override

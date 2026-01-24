@@ -20,7 +20,8 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongLi
     private ArrayList<Song> songs;
     private final Dictionary<View, Song> dictionary = new Hashtable<>();
 
-    public static class SongListViewHolder extends RecyclerView.ViewHolder {
+    @SuppressWarnings("InnerClassMayBeStatic")
+    public class SongListViewHolder extends RecyclerView.ViewHolder {
         public SongListViewHolder(View itemView) {
             super(itemView);
             nameTextView = itemView.findViewById(R.id.songListItemNameTextView);
