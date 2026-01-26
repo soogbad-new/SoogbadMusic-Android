@@ -13,7 +13,6 @@ import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
@@ -117,7 +116,6 @@ public class MainActivity extends AppCompatActivity {
         };
         audioManager.registerAudioDeviceCallback(audioDeviceCallback, new Handler(Looper.getMainLooper()));
         pickImageLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(), this::handlePickImageResult);
-        Playlist.setDirectory(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC));
         Playlist.refreshSongs();
         new Timer().schedule(new TimerTask() {
             @Override
