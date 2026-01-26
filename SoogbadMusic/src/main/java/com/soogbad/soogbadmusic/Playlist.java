@@ -1,6 +1,8 @@
 package com.soogbad.soogbadmusic;
 
 import android.os.Environment;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaMetadataCompat;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -12,11 +14,13 @@ import java.util.ArrayList;
 public class Playlist {
 
     private static ArrayList<Song> songs = new ArrayList<>();
+    private static ArrayList<MediaBrowserCompat.MediaItem> mediaItems = null;
     private static boolean refreshSongsComplete = false;
     private static double refreshSongsProgress = 0;
     private static boolean isAccessingRefreshSongsProgress = false;
     private static Thread lastRefreshThread = null;
     private static boolean stopLastRefresh = false;
+    private static boolean loadMediaItemsComplete = false;
 
     public static ArrayList<Song> getSongs() { return songs; }
     public static boolean getRefreshSongsComplete() { return refreshSongsComplete; }
@@ -24,6 +28,8 @@ public class Playlist {
     public static double getRefreshSongsProgress() { return refreshSongsProgress; }
     public static void setRefreshSongsProgress(double refreshSongsProgress) { Playlist.refreshSongsProgress = refreshSongsProgress; }
     public static boolean isAccessingRefreshSongsProgress() { return isAccessingRefreshSongsProgress; }
+    public static boolean getLoadMediaItemsComplete() { return loadMediaItemsComplete; }
+    public static void setLoadMediaItemsComplete(boolean loadMediaItemsComplete) { Playlist.loadMediaItemsComplete = loadMediaItemsComplete; }
 
     /** @noinspection StatementWithEmptyBody*/
     public static void refreshSongs() {
@@ -56,12 +62,23 @@ public class Playlist {
             Playlist.songs = songs;
             sortSongs();
             refreshSongsComplete = true;
+            ArrayList<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
+            for(Song song : songs) {
+                MediaMetadataCompat metadata = new MediaMetadataCompat.Builder().putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, song.getFile().getAbsolutePath()).putString(MediaMetadataCompat.METADATA_KEY_TITLE, song.getData().Title).putString(MediaMetadataCompat.METADATA_KEY_ARTIST, song.getData().Artist).putString(MediaMetadataCompat.METADATA_KEY_ALBUM, song.getData().Album).putLong(MediaMetadataCompat.METADATA_KEY_YEAR, song.getData().Year).putLong(MediaMetadataCompat.METADATA_KEY_DURATION, (long)(song.getDuration() * 1000)).build();
+                mediaItems.add(new MediaBrowserCompat.MediaItem(metadata.getDescription(), MediaBrowserCompat.MediaItem.FLAG_PLAYABLE));
+            }
+            Playlist.mediaItems = mediaItems;
+            loadMediaItemsComplete = true;
         });
         lastRefreshThread.start();
     }
 
     public static void sortSongs() {
         songs.sort(new SongComparator());
+    }
+
+    public static void reset() {
+        songs = new ArrayList<>(); mediaItems = null; refreshSongsComplete = false; loadMediaItemsComplete = false; refreshSongsProgress = 0; isAccessingRefreshSongsProgress = false; stopLastRefresh = false;
     }
 
 }

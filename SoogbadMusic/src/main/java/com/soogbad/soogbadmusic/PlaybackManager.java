@@ -22,13 +22,13 @@ import java.util.Random;
 
 public class PlaybackManager {
 
-    private static final ArrayList<Song> history = new ArrayList<>();
+    private static ArrayList<Song> history = new ArrayList<>();
     private static int currentlyPlayedSongIndex = -1;
     private static Player player = null;
     private static boolean paused = true;
     private static boolean shuffle = false;
     private static boolean filter = true;
-    private static final ArrayList<Song> queue = new ArrayList<>();
+    private static ArrayList<Song> queue = new ArrayList<>();
     private static MediaSession mediaSession = null;
 
     private static final ArrayList<EmptyListener> onPausedValueChangedListeners = new ArrayList<>();
@@ -217,6 +217,10 @@ public class PlaybackManager {
                 .addAction(new NotificationCompat.Action(R.drawable.next, "Next", PendingIntent.getService(SoogbadMusicApplication.getAppContext(), 0, nextActionIntent, PendingIntent.FLAG_IMMUTABLE)));
         if(ActivityCompat.checkSelfPermission(SoogbadMusicApplication.getAppContext(), Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
             NotificationManagerCompat.from(SoogbadMusicApplication.getAppContext()).notify(6969, builder.build());
+    }
+
+    public static void reset() {
+        history = new ArrayList<>(); currentlyPlayedSongIndex = -1; player = null; paused = true; shuffle = false; filter = true; queue = new ArrayList<>();
     }
 
 }

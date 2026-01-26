@@ -12,6 +12,7 @@ import android.media.AudioDeviceCallback;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -92,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void handleOnBackPressed() { }
         });
+        pickImageLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(), this::handlePickImageResult);
         checkPermissions();
     }
     private void setWindowProperties() {
@@ -115,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
             public void onAudioDevicesRemoved(AudioDeviceInfo[] removedDevices) { super.onAudioDevicesRemoved(removedDevices); PlaybackManager.setPaused(true); }
         };
         audioManager.registerAudioDeviceCallback(audioDeviceCallback, new Handler(Looper.getMainLooper()));
-        pickImageLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(), this::handlePickImageResult);
+        Playlist.reset();
         Playlist.refreshSongs();
         new Timer().schedule(new TimerTask() {
             @Override
@@ -420,6 +422,14 @@ public class MainActivity extends AppCompatActivity {
             permissions.add(Manifest.permission.READ_PHONE_STATE);
         if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED)
             permissions.add(Manifest.permission.POST_NOTIFICATIONS);
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK) != PackageManager.PERMISSION_GRANTED)
+                permissions.add(Manifest.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK);
+        }
+        else {
+            if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.FOREGROUND_SERVICE) != PackageManager.PERMISSION_GRANTED)
+                permissions.add(Manifest.permission.FOREGROUND_SERVICE);
+        }
         if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED)
             permissions.add(Manifest.permission.READ_MEDIA_AUDIO);
         if(!permissions.isEmpty()) {
@@ -459,10 +469,10 @@ public class MainActivity extends AppCompatActivity {
         if(PlaybackManager.getPlayer() != null)
             PlaybackManager.getPlayer().release();
         ((TelephonyManager)getSystemService(TELEPHONY_SERVICE)).unregisterTelephonyCallback(telephonyCallback);
+        PlaybackManager.reset();
+        songList.reset();
     }
 
-    public SongList getSongList() {
-        return songList;
-    }
+    public SongList getSongList() { return songList; }
 
 }
