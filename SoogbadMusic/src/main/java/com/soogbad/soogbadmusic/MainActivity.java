@@ -2,6 +2,7 @@ package com.soogbad.soogbadmusic;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -18,6 +19,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.provider.Settings;
+import android.support.v4.media.MediaBrowserCompat;
 import android.telephony.TelephonyCallback;
 import android.telephony.TelephonyManager;
 import android.text.Editable;
@@ -59,6 +61,13 @@ import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
 
+    @SuppressLint("StaticFieldLeak")
+    private static MainActivity instance = null;
+    public static MainActivity getInstance() { return instance; }
+
+    private Timer timer;
+    private MediaBrowserCompat mediaBrowser;
+
     private ConstraintLayout constraintLayout;
     private ImageButton shuffleButton, filterButton, playPauseButton, previousButton, nextButton, advancedSearchButton;
     private TextView songNameTextView, songInfoTextView, currentTimeTextView, durationTextView;
@@ -74,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        instance = this;
         super.onCreate(savedInstanceState);
         setWindowProperties();
         constraintLayout = findViewById(R.id.constraintLayout); shuffleButton = findViewById(R.id.shuffleButton); filterButton = findViewById(R.id.filterButton); playPauseButton = findViewById(R.id.playPauseButton); previousButton = findViewById(R.id.previousButton); nextButton = findViewById(R.id.nextButton); songNameTextView = findViewById(R.id.songNameTextView); songInfoTextView = findViewById(R.id.songInfoTextView); currentTimeTextView = findViewById(R.id.currentTimeTextView); durationTextView = findViewById(R.id.durationTextView); albumCoverImageView = findViewById(R.id.albumCoverImageView); progressBarBackground = findViewById(R.id.progressBarBackground); progressBar = findViewById(R.id.progressBar); searchEditText = findViewById(R.id.searchEditText); advancedSearchButton = findViewById(R.id.advancedSearchButton); songList = findViewById(R.id.songList);
@@ -107,7 +117,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void onPermissionsGranted() {
-        PlaybackManager.initMediaSessionNotification(this);
+        /*if(MusicService.getInstance() == null)
+            startService(new Intent(getApplicationContext(), MusicService.class));*/
         ((TelephonyManager)getSystemService(TELEPHONY_SERVICE)).registerTelephonyCallback(getMainExecutor(), telephonyCallback);
         AudioManager audioManager = (AudioManager)getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
         AudioDeviceCallback audioDeviceCallback = new AudioDeviceCallback() {
@@ -119,10 +130,19 @@ public class MainActivity extends AppCompatActivity {
         audioManager.registerAudioDeviceCallback(audioDeviceCallback, new Handler(Looper.getMainLooper()));
         Playlist.reset();
         Playlist.refreshSongs();
-        new Timer().schedule(new TimerTask() {
+        mediaBrowser = new MediaBrowserCompat(this, new ComponentName(this, MusicService.class), new MediaBrowserCompat.ConnectionCallback() {
             @Override
-            public void run() { new Handler(Looper.getMainLooper()).postAtFrontOfQueue(() -> onTimerTick()); }
-        }, 0, 10);
+            public void onConnected() {
+                super.onConnected();
+                mediaBrowser.subscribe(mediaBrowser.getRoot(), new MediaBrowserCompat.SubscriptionCallback() {});
+            }
+        }, null);
+        mediaBrowser.connect();
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() { new Handler(Looper.getMainLooper()).post(() -> onTimerTick()); }
+        }, 0, 20);
         PlaybackManager.addOnSongChangedListener(this::onSongChanged);
         PlaybackManager.addOnPausedValueChangedListener(this::onPausedValueChanged);
     }
@@ -463,14 +483,22 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        instance = null;
         super.onDestroy();
-        if(PlaybackManager.getMediaSession() != null)
-            PlaybackManager.getMediaSession().release();
         if(PlaybackManager.getPlayer() != null)
             PlaybackManager.getPlayer().release();
         ((TelephonyManager)getSystemService(TELEPHONY_SERVICE)).unregisterTelephonyCallback(telephonyCallback);
         PlaybackManager.reset();
+        if(mediaBrowser != null && mediaBrowser.isConnected()) {
+            mediaBrowser.unsubscribe(mediaBrowser.getRoot());
+            mediaBrowser.disconnect();
+        }
+        if(MusicService.getInstance() != null)
+            stopService(new Intent(this, MusicService.class));
         songList.reset();
+        if(timer != null) {
+            timer.cancel(); timer.purge();
+        }
     }
 
     public SongList getSongList() { return songList; }

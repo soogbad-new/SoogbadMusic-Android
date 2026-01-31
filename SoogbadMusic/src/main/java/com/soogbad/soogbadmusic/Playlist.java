@@ -28,6 +28,7 @@ public class Playlist {
     public static double getRefreshSongsProgress() { return refreshSongsProgress; }
     public static void setRefreshSongsProgress(double refreshSongsProgress) { Playlist.refreshSongsProgress = refreshSongsProgress; }
     public static boolean isAccessingRefreshSongsProgress() { return isAccessingRefreshSongsProgress; }
+    public static ArrayList<MediaBrowserCompat.MediaItem> getMediaItems() { return mediaItems; }
     public static boolean getLoadMediaItemsComplete() { return loadMediaItemsComplete; }
     public static void setLoadMediaItemsComplete(boolean loadMediaItemsComplete) { Playlist.loadMediaItemsComplete = loadMediaItemsComplete; }
 
