@@ -64,12 +64,14 @@ public class Playlist {
             sortSongs();
             refreshSongsComplete = true;
             ArrayList<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
-            for(Song song : songs) {
+            for(Song song : Playlist.songs) {
                 MediaMetadataCompat metadata = new MediaMetadataCompat.Builder().putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, song.getFile().getAbsolutePath()).putString(MediaMetadataCompat.METADATA_KEY_TITLE, song.getData().Title).putString(MediaMetadataCompat.METADATA_KEY_ARTIST, song.getData().Artist).putString(MediaMetadataCompat.METADATA_KEY_ALBUM, song.getData().Album).putLong(MediaMetadataCompat.METADATA_KEY_YEAR, song.getData().Year).putLong(MediaMetadataCompat.METADATA_KEY_DURATION, (long)(song.getDuration() * 1000)).build();
                 mediaItems.add(new MediaBrowserCompat.MediaItem(metadata.getDescription(), MediaBrowserCompat.MediaItem.FLAG_PLAYABLE));
             }
             Playlist.mediaItems = mediaItems;
             loadMediaItemsComplete = true;
+            for(Song song : Playlist.songs)
+                song.loadAlbumCoverAndLyrics();
         });
         lastRefreshThread.start();
     }
