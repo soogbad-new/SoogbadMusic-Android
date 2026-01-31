@@ -117,8 +117,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void onPermissionsGranted() {
-        /*if(MusicService.getInstance() == null)
-            startService(new Intent(getApplicationContext(), MusicService.class));*/
         ((TelephonyManager)getSystemService(TELEPHONY_SERVICE)).registerTelephonyCallback(getMainExecutor(), telephonyCallback);
         AudioManager audioManager = (AudioManager)getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
         AudioDeviceCallback audioDeviceCallback = new AudioDeviceCallback() {
@@ -192,6 +190,8 @@ public class MainActivity extends AppCompatActivity {
     private void onSongChanged() {
         if(PlaybackManager.getPlayer() == null)
             return;
+        if(MusicService.getInstance() == null)
+            startService(new Intent(getApplicationContext(), MusicService.class));
         SongData data = PlaybackManager.getPlayer().getSong().getData();
         searchEditTextClearFocus();
         searchEditText.setTypeface(null, Typeface.ITALIC);

@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -39,10 +40,15 @@ public class MusicService extends MediaBrowserServiceCompat {
     public void onCreate() {
         instance = this;
         super.onCreate();
-        /*if(MainActivity.getInstance() == null)
-            startActivity(new Intent(getApplicationContext(), MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));*/
         getSystemService(NotificationManager.class).createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL_ID, "SoogbadMusic", NotificationManager.IMPORTANCE_DEFAULT));
         initMediaSession();
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        if(MainActivity.getInstance() == null)
+            startActivity(new Intent(getApplicationContext(), MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        return super.onBind(intent);
     }
 
     @Nullable
