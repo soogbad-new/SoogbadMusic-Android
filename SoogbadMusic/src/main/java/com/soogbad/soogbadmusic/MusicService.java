@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.provider.MediaStore;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -65,6 +66,7 @@ public class MusicService extends MediaBrowserServiceCompat {
                 result.sendResult(Playlist.getMediaItems());
             else {
                 result.detach();
+                Playlist.loadMediaItems();
                 new Thread(() -> {
                     while(!Playlist.getLoadMediaItemsComplete()) { }
                     Playlist.setLoadMediaItemsComplete(false);
@@ -76,22 +78,26 @@ public class MusicService extends MediaBrowserServiceCompat {
             result.sendResult(null);
     }
 
+    private final MediaSessionCompat.Callback mediaSessionCallbacks = new MediaSessionCompat.Callback() {
+        @Override
+        public void onPlay() { super.onPlay(); PlaybackManager.setPaused(false); }
+        @Override
+        public void onPause() { super.onPause(); PlaybackManager.setPaused(true); }
+        @Override
+        public void onSkipToNext() { super.onSkipToNext(); PlaybackManager.nextSong(); }
+        @Override
+        public void onSkipToPrevious() { super.onSkipToPrevious(); PlaybackManager.previousSong(); }
+        @Override
+        public void onPlayFromMediaId(String mediaId, Bundle extras) { super.onPlayFromMediaId(mediaId, extras); Playlist.getSongs().forEach((song) -> { if(song.getPath().equals(mediaId)) PlaybackManager.switchSong(song); }); }
+        @Override
+        public void onPlayFromSearch(String query, Bundle extras) { super.onPlayFromSearch(query, extras); String title = extras.getString(MediaStore.EXTRA_MEDIA_TITLE); if(title == null) return; Playlist.getSongs().forEach((song) -> { if(song.getData().Title.equals(title)) PlaybackManager.switchSong(song); }); }
+    };
+
     private void initMediaSession() {
         if(mediaSession != null)
             mediaSession.release();
         mediaSession = new MediaSessionCompat(this, "SoogbadMusic");
-        mediaSession.setCallback(new MediaSessionCompat.Callback() {
-            @Override
-            public void onPlay() { PlaybackManager.setPaused(false); }
-            @Override
-            public void onPause() { PlaybackManager.setPaused(true); }
-            @Override
-            public void onSkipToNext() { PlaybackManager.nextSong(); }
-            @Override
-            public void onSkipToPrevious() { PlaybackManager.previousSong(); }
-            @Override
-            public void onPlayFromSearch(String query, Bundle extras) { super.onPlayFromSearch(query, extras); onPlay(); }
-        });
+        mediaSession.setCallback(mediaSessionCallbacks);
         mediaSession.setActive(true);
         new MediaControllerCompat(this, mediaSession.getSessionToken()).registerCallback(new MediaControllerCompat.Callback() {
             @Override

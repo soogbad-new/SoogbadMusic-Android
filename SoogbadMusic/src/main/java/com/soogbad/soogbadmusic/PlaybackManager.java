@@ -135,7 +135,7 @@ public class PlaybackManager {
     }
 
     public static void switchSong(Song song) {
-        if(!song.getFile().exists())
+        if(song == null || !song.getFile().exists())
             return;
         history.add(song);
         currentlyPlayedSongIndex = history.size() - 1;
