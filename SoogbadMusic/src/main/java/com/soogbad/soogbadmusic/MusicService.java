@@ -9,8 +9,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.os.Bundle;
-import android.os.IBinder;
-import android.provider.MediaStore;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -35,7 +33,7 @@ public class MusicService extends MediaBrowserServiceCompat {
     public static MusicService getInstance() { return instance; }
 
     private MediaSessionCompat mediaSession = null;
-    @SuppressWarnings("FieldCanBeLocal")
+    @SuppressWarnings({"FieldCanBeLocal", "RedundantSuppression"})
     private final String NOTIFICATION_CHANNEL_ID = "soogbadmusic", MEDIA_ROOT_ID = "media_root", MEDIA_SUGGESTED_ID = "media_suggested";
     private final int NOTIFICATION_ID = 6969;
     private boolean isForeground = false;
@@ -48,23 +46,23 @@ public class MusicService extends MediaBrowserServiceCompat {
         initMediaSession();
     }
 
-    @Override
-    public IBinder onBind(Intent intent) {
-        if(MainActivity.getInstance() == null)
-            startActivity(new Intent(getApplicationContext(), MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-        return super.onBind(intent);
-    }
-
     @Nullable
     @Override
     public BrowserRoot onGetRoot(@NonNull String clientPackageName, int clientUid, @Nullable Bundle rootHints) {
         Bundle extras = new Bundle();
         extras.putBoolean(MediaConstants.BROWSER_SERVICE_EXTRAS_KEY_SEARCH_SUPPORTED, true); extras.putBoolean(MediaConstants.SESSION_EXTRAS_KEY_SLOT_RESERVATION_SKIP_TO_NEXT, true); extras.putBoolean(MediaConstants.SESSION_EXTRAS_KEY_SLOT_RESERVATION_SKIP_TO_PREV, true); extras.putBoolean(MediaConstants.TRANSPORT_CONTROLS_EXTRAS_KEY_SHUFFLE, true);
-        return new BrowserRoot(MEDIA_ROOT_ID, extras);
+        if(rootHints != null && rootHints.getBoolean(BrowserRoot.EXTRA_SUGGESTED, false))
+            return new BrowserRoot(MEDIA_SUGGESTED_ID, extras);
+        else
+            return new BrowserRoot(MEDIA_ROOT_ID, extras);
     }
 
     @Override
     public void onLoadChildren(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
+        if(parentId.equals("none")) {
+            result.sendResult(null);
+            return;
+        }
         if(Playlist.getMediaItems() == null) {
             result.detach();
             waitForPlaylistMediaItems(parentId, result);
@@ -87,17 +85,28 @@ public class MusicService extends MediaBrowserServiceCompat {
         else if(parentId.equals(MEDIA_SUGGESTED_ID)) {
             ArrayList<MediaBrowserCompat.MediaItem> forYou = new ArrayList<>();
             ArrayList<MediaBrowserCompat.MediaItem> mediaItems = Playlist.getMediaItems();
-            if(mediaItems.size() >= 4)
+            if(mediaItems.size() >= 4) {
+                Random random = new Random();
                 for(int i = 1; i <= 4; i++) {
-                    MediaBrowserCompat.MediaItem suggestedItem = mediaItems.get(new Random().nextInt(mediaItems.size()));
+                    MediaBrowserCompat.MediaItem suggestedItem = mediaItems.get(random.nextInt(mediaItems.size()));
                     while(forYou.contains(suggestedItem))
                         suggestedItem = mediaItems.get(new Random().nextInt(mediaItems.size()));
                     forYou.add(suggestedItem);
                 }
+            }
             result.sendResult(forYou);
         }
         else
             result.sendResult(null);
+    }
+
+    @Override
+    public void onSearch(@NonNull String query, Bundle extras, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
+        ArrayList<MediaBrowserCompat.MediaItem> results = new ArrayList<>();
+        for(MediaBrowserCompat.MediaItem mediaItem : Playlist.getMediaItems())
+            if(SongData.contains(mediaItem, query))
+                results.add(mediaItem);
+        result.sendResult(results);
     }
 
     private final MediaSessionCompat.Callback mediaSessionCallbacks = new MediaSessionCompat.Callback() {
@@ -112,7 +121,7 @@ public class MusicService extends MediaBrowserServiceCompat {
         @Override
         public void onPlayFromMediaId(String mediaId, Bundle extras) { super.onPlayFromMediaId(mediaId, extras); Playlist.getSongs().forEach((song) -> { if(song.getPath().equals(mediaId)) PlaybackManager.switchSong(song); }); }
         @Override
-        public void onPlayFromSearch(String query, Bundle extras) { super.onPlayFromSearch(query, extras); String title = extras.getString(MediaStore.EXTRA_MEDIA_TITLE); if(title == null) return; Playlist.getSongs().forEach((song) -> { if(song.getData().Title.equals(title)) PlaybackManager.switchSong(song); }); }
+        public void onPlayFromSearch(String query, Bundle extras) { super.onPlayFromSearch(query, extras); Playlist.getSongs().forEach((song) -> { if(song.getData().contains(query, false)) PlaybackManager.switchSong(song); }); }
     };
 
     private void initMediaSession() {
@@ -177,16 +186,24 @@ public class MusicService extends MediaBrowserServiceCompat {
                 PlaybackManager.previousSong();
             else if(intent.getAction().equals("com.app.soogbadmusic.ACTION_NEXT"))
                 PlaybackManager.nextSong();
+            else if(intent.getAction().equals("com.app.soogbadmusic.ACTION_KILL")) {
+                killService();
+                return START_NOT_STICKY;
+            }
         }
         return START_STICKY;
+    }
+
+    private void killService() {
+        stopForeground(STOP_FOREGROUND_REMOVE);
+        getSystemService(NotificationManager.class).cancel(NOTIFICATION_ID);
+        stopSelf();
     }
 
     @Override
     public void onDestroy() {
         instance = null;
         super.onDestroy();
-        stopForeground(STOP_FOREGROUND_REMOVE);
-        getSystemService(NotificationManager.class).cancel(NOTIFICATION_ID);
         if(mediaSession != null)
             mediaSession.release();
         if(MainActivity.getInstance() != null)

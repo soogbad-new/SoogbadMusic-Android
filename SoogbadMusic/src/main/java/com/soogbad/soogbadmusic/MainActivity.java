@@ -133,10 +133,7 @@ public class MainActivity extends AppCompatActivity {
         Playlist.refreshSongs();
         mediaBrowser = new MediaBrowserCompat(this, new ComponentName(this, MusicService.class), new MediaBrowserCompat.ConnectionCallback() {
             @Override
-            public void onConnected() {
-                super.onConnected();
-                mediaBrowser.subscribe(mediaBrowser.getRoot(), new MediaBrowserCompat.SubscriptionCallback() {});
-            }
+            public void onConnected() { super.onConnected(); mediaBrowser.subscribe("none", new MediaBrowserCompat.SubscriptionCallback() {}); }
         }, null);
         mediaBrowser.connect();
         timer = new Timer();
@@ -493,16 +490,17 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         instance = null;
         super.onDestroy();
+        PlaybackManager.setPaused(true);
         if(PlaybackManager.getPlayer() != null)
             PlaybackManager.getPlayer().release();
         ((TelephonyManager)getSystemService(TELEPHONY_SERVICE)).unregisterTelephonyCallback(telephonyCallback);
         PlaybackManager.reset();
         if(mediaBrowser != null && mediaBrowser.isConnected()) {
-            mediaBrowser.unsubscribe(mediaBrowser.getRoot());
+            mediaBrowser.unsubscribe("none");
             mediaBrowser.disconnect();
         }
         if(MusicService.getInstance() != null)
-            stopService(new Intent(this, MusicService.class));
+            startService(new Intent(this, MusicService.class).setAction("com.app.soogbadmusic.ACTION_KILL"));
         songList.reset();
         if(timer != null) {
             timer.cancel(); timer.purge();

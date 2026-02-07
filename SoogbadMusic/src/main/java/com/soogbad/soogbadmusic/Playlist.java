@@ -69,6 +69,7 @@ public class Playlist {
     private static ArrayList<MediaBrowserCompat.MediaItem> mediaItems = null;
     private static Thread lastLoadMediaItemsThread = null;
     private static boolean loadMediaItemsComplete = false;
+    private static boolean stopLastLoadMediaItems = false;
 
     public static ArrayList<MediaBrowserCompat.MediaItem> getMediaItems() { return mediaItems; }
     public static boolean getLoadMediaItemsComplete() { return loadMediaItemsComplete; }
@@ -76,10 +77,17 @@ public class Playlist {
 
     /** @noinspection StatementWithEmptyBody*/
     public static void loadMediaItems() {
+        if(lastLoadMediaItemsThread != null) {
+            stopLastLoadMediaItems = true;
+            while(lastLoadMediaItemsThread.isAlive()) { }
+            stopLastLoadMediaItems = false;
+        }
         lastLoadMediaItemsThread = new Thread(() -> {
-            while(songs.isEmpty() || lastRefreshSongsThread.isAlive() || lastLoadMediaItemsThread.isAlive()) { }
+            while(songs.isEmpty() || lastRefreshSongsThread.isAlive()) { }
             ArrayList<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
             for(Song song : Playlist.songs) {
+                if(stopLastLoadMediaItems)
+                    return;
                 song.loadAlbumCoverAndLyrics();
                 MediaMetadataCompat metadata = new MediaMetadataCompat.Builder().putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, song.getFile().getAbsolutePath()).putString(MediaMetadataCompat.METADATA_KEY_TITLE, song.getData().Title).putString(MediaMetadataCompat.METADATA_KEY_ARTIST, song.getData().Artist).putString(MediaMetadataCompat.METADATA_KEY_ALBUM, song.getData().Album).putLong(MediaMetadataCompat.METADATA_KEY_YEAR, song.getData().Year).putLong(MediaMetadataCompat.METADATA_KEY_DURATION, (long)(song.getDuration() * 1000)).putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, song.getData().AlbumCover).build();
                 mediaItems.add(new MediaBrowserCompat.MediaItem(metadata.getDescription(), MediaBrowserCompat.MediaItem.FLAG_PLAYABLE));
