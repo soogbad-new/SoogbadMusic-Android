@@ -9,8 +9,10 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.media.AudioAttributes;
 import android.media.AudioDeviceCallback;
 import android.media.AudioDeviceInfo;
+import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
@@ -49,6 +51,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.media.AudioManagerCompat;
 
 import com.google.android.material.shape.CornerFamily;
 import com.google.android.material.shape.MaterialShapeDrawable;
@@ -274,6 +277,11 @@ public class MainActivity extends AppCompatActivity {
         if(PlaybackManager.getPaused() && !PlaybackManager.getShuffle() && progressBar.getWidth() >= progressBarBackground.getWidth()) {
             progressBar.getLayoutParams().width = progressBarBackground.getWidth();
             currentTimeTextView.setText(Utility.formatTime(PlaybackManager.getPlayer().getSong().getDuration()));
+        }
+        else if(!PlaybackManager.getPaused()) {
+            AudioManager audioManager = (AudioManager)getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+            AudioFocusRequest focusRequest = new AudioFocusRequest.Builder(AudioManagerCompat.AUDIOFOCUS_GAIN).setAudioAttributes(new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build()).build();
+            audioManager.requestAudioFocus(focusRequest);
         }
     }
     public void onNextButtonClick(View view) {

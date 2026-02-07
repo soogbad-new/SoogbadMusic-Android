@@ -23,8 +23,11 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.media.MediaBrowserServiceCompat;
+import androidx.media.utils.MediaConstants;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class MusicService extends MediaBrowserServiceCompat {
 
@@ -32,8 +35,8 @@ public class MusicService extends MediaBrowserServiceCompat {
     public static MusicService getInstance() { return instance; }
 
     private MediaSessionCompat mediaSession = null;
-    private final String NOTIFICATION_CHANNEL_ID = "soogbadmusic";
-    private final String MEDIA_ROOT_ID = "soogbadmusic";
+    @SuppressWarnings("FieldCanBeLocal")
+    private final String NOTIFICATION_CHANNEL_ID = "soogbadmusic", MEDIA_ROOT_ID = "media_root", MEDIA_SUGGESTED_ID = "media_suggested";
     private final int NOTIFICATION_ID = 6969;
     private boolean isForeground = false;
 
@@ -55,24 +58,43 @@ public class MusicService extends MediaBrowserServiceCompat {
     @Nullable
     @Override
     public BrowserRoot onGetRoot(@NonNull String clientPackageName, int clientUid, @Nullable Bundle rootHints) {
-        return new BrowserRoot(MEDIA_ROOT_ID, null);
+        Bundle extras = new Bundle();
+        extras.putBoolean(MediaConstants.BROWSER_SERVICE_EXTRAS_KEY_SEARCH_SUPPORTED, true); extras.putBoolean(MediaConstants.SESSION_EXTRAS_KEY_SLOT_RESERVATION_SKIP_TO_NEXT, true); extras.putBoolean(MediaConstants.SESSION_EXTRAS_KEY_SLOT_RESERVATION_SKIP_TO_PREV, true); extras.putBoolean(MediaConstants.TRANSPORT_CONTROLS_EXTRAS_KEY_SHUFFLE, true);
+        return new BrowserRoot(MEDIA_ROOT_ID, extras);
     }
 
-    /** @noinspection StatementWithEmptyBody*/
     @Override
     public void onLoadChildren(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
-        if(parentId.equals(MEDIA_ROOT_ID)) {
-            if(Playlist.getMediaItems() != null)
-                result.sendResult(Playlist.getMediaItems());
-            else {
-                result.detach();
-                Playlist.loadMediaItems();
-                new Thread(() -> {
-                    while(!Playlist.getLoadMediaItemsComplete()) { }
-                    Playlist.setLoadMediaItemsComplete(false);
-                    result.sendResult(Playlist.getMediaItems());
-                }).start();
-            }
+        if(Playlist.getMediaItems() == null) {
+            result.detach();
+            waitForPlaylistMediaItems(parentId, result);
+        }
+        else
+            onPlaylistMediaItemsLoaded(parentId, result);
+    }
+    /** @noinspection StatementWithEmptyBody*/
+    private void waitForPlaylistMediaItems(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
+        Playlist.loadMediaItems();
+        new Thread(() -> {
+            while(!Playlist.getLoadMediaItemsComplete()) { }
+            Playlist.setLoadMediaItemsComplete(false);
+            onPlaylistMediaItemsLoaded(parentId, result);
+        }).start();
+    }
+    private void onPlaylistMediaItemsLoaded(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
+        if(parentId.equals(MEDIA_ROOT_ID))
+            result.sendResult(Playlist.getMediaItems());
+        else if(parentId.equals(MEDIA_SUGGESTED_ID)) {
+            ArrayList<MediaBrowserCompat.MediaItem> forYou = new ArrayList<>();
+            ArrayList<MediaBrowserCompat.MediaItem> mediaItems = Playlist.getMediaItems();
+            if(mediaItems.size() >= 4)
+                for(int i = 1; i <= 4; i++) {
+                    MediaBrowserCompat.MediaItem suggestedItem = mediaItems.get(new Random().nextInt(mediaItems.size()));
+                    while(forYou.contains(suggestedItem))
+                        suggestedItem = mediaItems.get(new Random().nextInt(mediaItems.size()));
+                    forYou.add(suggestedItem);
+                }
+            result.sendResult(forYou);
         }
         else
             result.sendResult(null);
