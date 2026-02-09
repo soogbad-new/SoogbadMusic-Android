@@ -214,7 +214,7 @@ public class MusicService extends MediaBrowserServiceCompat {
             Intent nextActionIntent = new Intent(parentInstance, MusicService.class).setAction("com.app.soogbadmusic.ACTION_NEXT");
             NotificationCompat.Builder builder = new NotificationCompat.Builder(parentInstance, NOTIFICATION_CHANNEL_ID)
                     .setStyle(new androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSession.getSessionToken())).setPriority(NotificationCompat.PRIORITY_HIGH).setOngoing(true)
-                    .setSmallIcon(R.drawable.ic_launcher).setLargeIcon(data.AlbumCover).setContentTitle(data.Artist + " - " + data.Title).setContentText(data.Album + " (" + data.Year + ")")
+                    .setSmallIcon(R.drawable.icon).setLargeIcon(data.AlbumCover).setContentTitle(data.Artist + " - " + data.Title).setContentText(data.Album + " (" + data.Year + ")")
                     .addAction(new NotificationCompat.Action(R.drawable.previous, "Previous", PendingIntent.getService(parentInstance, 0, prevActionIntent, PendingIntent.FLAG_IMMUTABLE)))
                     .addAction(new NotificationCompat.Action(R.drawable.next, "Next", PendingIntent.getService(parentInstance, 0, nextActionIntent, PendingIntent.FLAG_IMMUTABLE)));
             return builder.build();
