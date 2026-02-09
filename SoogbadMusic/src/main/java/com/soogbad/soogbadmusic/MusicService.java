@@ -32,7 +32,7 @@ public class MusicService extends MediaBrowserServiceCompat {
     private static MusicService instance = null;
     public static MusicService getInstance() { return instance; }
 
-    private MediaSessionCompat mediaSession = null;
+    private MediaSessionHandler mediaSessionHandler = null;
     @SuppressWarnings({"FieldCanBeLocal", "RedundantSuppression"})
     private final String NOTIFICATION_CHANNEL_ID = "soogbadmusic", MEDIA_ROOT_ID = "media_root", MEDIA_SUGGESTED_ID = "media_suggested";
     private final int NOTIFICATION_ID = 6969;
@@ -43,7 +43,7 @@ public class MusicService extends MediaBrowserServiceCompat {
         instance = this;
         super.onCreate();
         getSystemService(NotificationManager.class).createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL_ID, "SoogbadMusic", NotificationManager.IMPORTANCE_DEFAULT));
-        initMediaSession();
+        mediaSessionHandler = new MediaSessionHandler(this);
     }
 
     @Nullable
@@ -109,73 +109,17 @@ public class MusicService extends MediaBrowserServiceCompat {
         result.sendResult(results);
     }
 
-    private final MediaSessionCompat.Callback mediaSessionCallbacks = new MediaSessionCompat.Callback() {
-        @Override
-        public void onPlay() { super.onPlay(); PlaybackManager.setPaused(false); }
-        @Override
-        public void onPause() { super.onPause(); PlaybackManager.setPaused(true); }
-        @Override
-        public void onSkipToNext() { super.onSkipToNext(); PlaybackManager.nextSong(); }
-        @Override
-        public void onSkipToPrevious() { super.onSkipToPrevious(); PlaybackManager.previousSong(); }
-        @Override
-        public void onPlayFromMediaId(String mediaId, Bundle extras) { super.onPlayFromMediaId(mediaId, extras); Playlist.getSongs().forEach((song) -> { if(song.getPath().equals(mediaId)) PlaybackManager.switchSong(song); }); }
-        @Override
-        public void onPlayFromSearch(String query, Bundle extras) { super.onPlayFromSearch(query, extras); Playlist.getSongs().forEach((song) -> { if(song.getData().contains(query, false)) PlaybackManager.switchSong(song); }); }
-    };
-
-    private void initMediaSession() {
-        if(mediaSession != null)
-            mediaSession.release();
-        mediaSession = new MediaSessionCompat(this, "SoogbadMusic");
-        mediaSession.setCallback(mediaSessionCallbacks);
-        mediaSession.setActive(true);
-        new MediaControllerCompat(this, mediaSession.getSessionToken()).registerCallback(new MediaControllerCompat.Callback() {
-            @Override
-            public void onPlaybackStateChanged(@Nullable PlaybackStateCompat state) { super.onPlaybackStateChanged(state); }
-            @Override
-            public void onMetadataChanged(@Nullable MediaMetadataCompat metadata) { super.onMetadataChanged(metadata); }
-        });
-        mediaSession.setPlaybackState(new PlaybackStateCompat.Builder().setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS | PlaybackStateCompat.ACTION_SKIP_TO_NEXT).setState(PlaybackStateCompat.STATE_NONE, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 0).build());
-        setSessionToken(mediaSession.getSessionToken());
-    }
-
-    public void updateMediaSessionData() {
-        SongData data = PlaybackManager.getPlayer().getSong().getData();
-        mediaSession.setMetadata(new MediaMetadataCompat.Builder().putLong(MediaMetadataCompat.METADATA_KEY_DURATION, (long)(PlaybackManager.getPlayer().getSong().getDuration() * 1000)).putString(MediaMetadataCompat.METADATA_KEY_TITLE, data.Title).putString(MediaMetadataCompat.METADATA_KEY_ARTIST, data.Artist).putString(MediaMetadataCompat.METADATA_KEY_ALBUM, data.Album).putLong(MediaMetadataCompat.METADATA_KEY_YEAR, data.Year).putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, data.AlbumCover).build());
-        mediaSession.setPlaybackState(new PlaybackStateCompat.Builder().setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_PLAY_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS | PlaybackStateCompat.ACTION_SKIP_TO_NEXT).setState(PlaybackManager.getPaused() ? PlaybackStateCompat.STATE_PAUSED : PlaybackStateCompat.STATE_PLAYING, (long)(1000 * PlaybackManager.getPlayer().getCurrentTime()), PlaybackManager.getPaused() ? 0 : 1).build());
-        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
-            NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, buildMediaNotification(data));
-    }
-    private Notification buildMediaNotification(SongData data) {
-        Intent prevActionIntent = new Intent(this, MusicService.class).setAction("com.app.soogbadmusic.ACTION_PREV");
-        Intent nextActionIntent = new Intent(this, MusicService.class).setAction("com.app.soogbadmusic.ACTION_NEXT");
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
-                .setStyle(new androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSession.getSessionToken())).setPriority(NotificationCompat.PRIORITY_HIGH).setOngoing(true)
-                .setSmallIcon(R.drawable.ic_launcher).setLargeIcon(data.AlbumCover).setContentTitle(data.Artist + " - " + data.Title).setContentText(data.Album + " (" + data.Year + ")")
-                .addAction(new NotificationCompat.Action(R.drawable.previous, "Previous", PendingIntent.getService(this, 0, prevActionIntent, PendingIntent.FLAG_IMMUTABLE)))
-                .addAction(new NotificationCompat.Action(R.drawable.next, "Next", PendingIntent.getService(this, 0, nextActionIntent, PendingIntent.FLAG_IMMUTABLE)));
-        return builder.build();
-    }
-
-    public void updateMediaSessionPlaybackState(boolean pausedState, double currentTime) {
-        mediaSession.setPlaybackState(new PlaybackStateCompat.Builder().setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_PLAY_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS | PlaybackStateCompat.ACTION_SKIP_TO_NEXT).setState(pausedState ? PlaybackStateCompat.STATE_PAUSED : PlaybackStateCompat.STATE_PLAYING, (long)(1000 * currentTime), pausedState ? 0 : 1).build());
-        if(pausedState)
-            bringServiceToBackground();
-        else if(PlaybackManager.getPlayer() != null)
-            bringServiceToForeground();
-    }
     private void bringServiceToBackground() {
         stopForeground(STOP_FOREGROUND_DETACH);
         if(PlaybackManager.getPlayer() != null && ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
-            NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, buildMediaNotification(PlaybackManager.getPlayer().getSong().getData()));
+            NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, mediaSessionHandler.buildMediaNotification(PlaybackManager.getPlayer().getSong().getData()));
         isForeground = false;
     }
     private void bringServiceToForeground() {
         if(!isForeground)
-            startForeground(NOTIFICATION_ID, buildMediaNotification(PlaybackManager.getPlayer().getSong().getData()), ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
+            startForeground(NOTIFICATION_ID, mediaSessionHandler.buildMediaNotification(PlaybackManager.getPlayer().getSong().getData()), ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
         else if(ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
-            NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, buildMediaNotification(PlaybackManager.getPlayer().getSong().getData()));
+            NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, mediaSessionHandler.buildMediaNotification(PlaybackManager.getPlayer().getSong().getData()));
         isForeground = true;
     }
 
@@ -204,10 +148,78 @@ public class MusicService extends MediaBrowserServiceCompat {
     public void onDestroy() {
         instance = null;
         super.onDestroy();
-        if(mediaSession != null)
-            mediaSession.release();
+        if(mediaSessionHandler.getMediaSession() != null)
+            mediaSessionHandler.getMediaSession().release();
         if(MainActivity.getInstance() != null)
             MainActivity.getInstance().finishAndRemoveTask();
+    }
+
+    public void updateMediaSessionData() { mediaSessionHandler.updateMediaSessionData(); }
+    public void updateMediaSessionPlaybackState(boolean pausedState, double currentTime) { mediaSessionHandler.updateMediaSessionPlaybackState(pausedState, currentTime); }
+
+    public class MediaSessionHandler {
+
+        private final MusicService parentInstance;
+        private MediaSessionCompat mediaSession = null;
+        public MediaSessionCompat getMediaSession() { return mediaSession; }
+
+        public MediaSessionHandler(MusicService parentInstance) {
+            this.parentInstance = parentInstance;
+            if(mediaSession != null)
+                mediaSession.release();
+            mediaSession = new MediaSessionCompat(parentInstance, "SoogbadMusic");
+            mediaSession.setCallback(new MediaSessionCompat.Callback() {
+                @Override
+                public void onPlay() { super.onPlay(); PlaybackManager.setPaused(false); }
+                @Override
+                public void onPause() { super.onPause(); PlaybackManager.setPaused(true); }
+                @Override
+                public void onSkipToNext() { super.onSkipToNext(); PlaybackManager.nextSong(); }
+                @Override
+                public void onSkipToPrevious() { super.onSkipToPrevious(); PlaybackManager.previousSong(); }
+                @Override
+                public void onPlayFromMediaId(String mediaId, Bundle extras) { super.onPlayFromMediaId(mediaId, extras); Playlist.getSongs().forEach((song) -> { if(song.getPath().equals(mediaId)) PlaybackManager.switchSong(song); }); }
+                @Override
+                public void onPlayFromSearch(String query, Bundle extras) { super.onPlayFromSearch(query, extras); Playlist.getSongs().forEach((song) -> { if(song.getData().contains(query, false)) PlaybackManager.switchSong(song); }); }
+            });
+            mediaSession.setActive(true);
+            new MediaControllerCompat(parentInstance, mediaSession.getSessionToken()).registerCallback(new MediaControllerCompat.Callback() {
+                @Override
+                public void onPlaybackStateChanged(@Nullable PlaybackStateCompat state) { super.onPlaybackStateChanged(state); }
+                @Override
+                public void onMetadataChanged(@Nullable MediaMetadataCompat metadata) { super.onMetadataChanged(metadata); }
+            });
+            mediaSession.setPlaybackState(new PlaybackStateCompat.Builder().setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS | PlaybackStateCompat.ACTION_SKIP_TO_NEXT).setState(PlaybackStateCompat.STATE_NONE, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 0).build());
+            setSessionToken(mediaSession.getSessionToken());
+        }
+
+        public void updateMediaSessionData() {
+            SongData data = PlaybackManager.getPlayer().getSong().getData();
+            mediaSession.setMetadata(new MediaMetadataCompat.Builder().putLong(MediaMetadataCompat.METADATA_KEY_DURATION, (long)(PlaybackManager.getPlayer().getSong().getDuration() * 1000)).putString(MediaMetadataCompat.METADATA_KEY_TITLE, data.Title).putString(MediaMetadataCompat.METADATA_KEY_ARTIST, data.Artist).putString(MediaMetadataCompat.METADATA_KEY_ALBUM, data.Album).putLong(MediaMetadataCompat.METADATA_KEY_YEAR, data.Year).putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, data.AlbumCover).build());
+            mediaSession.setPlaybackState(new PlaybackStateCompat.Builder().setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_PLAY_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS | PlaybackStateCompat.ACTION_SKIP_TO_NEXT).setState(PlaybackManager.getPaused() ? PlaybackStateCompat.STATE_PAUSED : PlaybackStateCompat.STATE_PLAYING, (long)(1000 * PlaybackManager.getPlayer().getCurrentTime()), PlaybackManager.getPaused() ? 0 : 1).build());
+            if(ActivityCompat.checkSelfPermission(parentInstance, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
+                NotificationManagerCompat.from(parentInstance).notify(NOTIFICATION_ID, buildMediaNotification(data));
+        }
+
+        public void updateMediaSessionPlaybackState(boolean pausedState, double currentTime) {
+            mediaSession.setPlaybackState(new PlaybackStateCompat.Builder().setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_PLAY_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS | PlaybackStateCompat.ACTION_SKIP_TO_NEXT).setState(pausedState ? PlaybackStateCompat.STATE_PAUSED : PlaybackStateCompat.STATE_PLAYING, (long)(1000 * currentTime), pausedState ? 0 : 1).build());
+            if(pausedState)
+                bringServiceToBackground();
+            else if(PlaybackManager.getPlayer() != null)
+                bringServiceToForeground();
+        }
+
+        public Notification buildMediaNotification(SongData data) {
+            Intent prevActionIntent = new Intent(parentInstance, MusicService.class).setAction("com.app.soogbadmusic.ACTION_PREV");
+            Intent nextActionIntent = new Intent(parentInstance, MusicService.class).setAction("com.app.soogbadmusic.ACTION_NEXT");
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(parentInstance, NOTIFICATION_CHANNEL_ID)
+                    .setStyle(new androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSession.getSessionToken())).setPriority(NotificationCompat.PRIORITY_HIGH).setOngoing(true)
+                    .setSmallIcon(R.drawable.ic_launcher).setLargeIcon(data.AlbumCover).setContentTitle(data.Artist + " - " + data.Title).setContentText(data.Album + " (" + data.Year + ")")
+                    .addAction(new NotificationCompat.Action(R.drawable.previous, "Previous", PendingIntent.getService(parentInstance, 0, prevActionIntent, PendingIntent.FLAG_IMMUTABLE)))
+                    .addAction(new NotificationCompat.Action(R.drawable.next, "Next", PendingIntent.getService(parentInstance, 0, nextActionIntent, PendingIntent.FLAG_IMMUTABLE)));
+            return builder.build();
+        }
+
     }
 
 }

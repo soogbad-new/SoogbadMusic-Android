@@ -13,13 +13,24 @@ android {
         versionName "1.0"
     }
     buildTypes {
-        release {
+        debug {
+            debuggable true
             minifyEnabled false
+            shrinkResources false
+            signingConfig signingConfigs.debug
+        }
+        release {
+            minifyEnabled true
+            shrinkResources true
+            signingConfig signingConfigs.debug
         }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
+    }
+    lintOptions {
+        disable 'IconXmlAndPng'
     }
 }
 
