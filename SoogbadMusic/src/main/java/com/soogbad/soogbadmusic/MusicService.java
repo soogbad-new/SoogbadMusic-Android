@@ -42,6 +42,8 @@ public class MusicService extends MediaBrowserServiceCompat {
     public void onCreate() {
         instance = this;
         super.onCreate();
+        if(MainActivity.getInstance() == null)
+            killService();
         getSystemService(NotificationManager.class).createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL_ID, "SoogbadMusic", NotificationManager.IMPORTANCE_DEFAULT));
         mediaSessionHandler = new MediaSessionHandler(this);
     }
@@ -65,27 +67,19 @@ public class MusicService extends MediaBrowserServiceCompat {
         }
         if(Playlist.getMediaItems() == null) {
             result.detach();
-            waitForPlaylistMediaItems(parentId, result);
+            Playlist.loadMediaItems(() -> onPlaylistMediaItemsLoaded(parentId, result));
         }
         else
             onPlaylistMediaItemsLoaded(parentId, result);
     }
-    /** @noinspection StatementWithEmptyBody*/
-    private void waitForPlaylistMediaItems(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
-        Playlist.loadMediaItems();
-        new Thread(() -> {
-            while(!Playlist.getLoadMediaItemsComplete()) { }
-            Playlist.setLoadMediaItemsComplete(false);
-            onPlaylistMediaItemsLoaded(parentId, result);
-        }).start();
-    }
+
     private void onPlaylistMediaItemsLoaded(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
         if(parentId.equals(MEDIA_ROOT_ID))
             result.sendResult(Playlist.getMediaItems());
         else if(parentId.equals(MEDIA_SUGGESTED_ID)) {
             ArrayList<MediaBrowserCompat.MediaItem> forYou = new ArrayList<>();
             ArrayList<MediaBrowserCompat.MediaItem> mediaItems = Playlist.getMediaItems();
-            if(mediaItems.size() >= 4) {
+            if(mediaItems != null && mediaItems.size() >= 4) {
                 Random random = new Random();
                 for(int i = 1; i <= 4; i++) {
                     MediaBrowserCompat.MediaItem suggestedItem = mediaItems.get(random.nextInt(mediaItems.size()));
