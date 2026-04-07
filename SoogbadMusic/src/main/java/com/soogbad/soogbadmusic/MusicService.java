@@ -67,10 +67,20 @@ public class MusicService extends MediaBrowserServiceCompat {
         }
         if(Playlist.getMediaItems() == null) {
             result.detach();
-            Playlist.loadMediaItems(() -> onPlaylistMediaItemsLoaded(parentId, result));
+            waitForPlaylistMediaItems(parentId, result);
         }
         else
             onPlaylistMediaItemsLoaded(parentId, result);
+    }
+
+    /** @noinspection StatementWithEmptyBody*/
+    private void waitForPlaylistMediaItems(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
+        Playlist.loadMediaItems();
+        new Thread(() -> {
+            while(!Playlist.getLoadMediaItemsComplete()) { }
+            Playlist.setLoadMediaItemsComplete(false);
+            onPlaylistMediaItemsLoaded(parentId, result);
+        }).start();
     }
 
     private void onPlaylistMediaItemsLoaded(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {

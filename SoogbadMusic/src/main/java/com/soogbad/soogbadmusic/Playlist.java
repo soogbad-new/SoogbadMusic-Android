@@ -2,8 +2,6 @@ package com.soogbad.soogbadmusic;
 
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
@@ -72,11 +70,15 @@ public class Playlist {
 
     private static ArrayList<MediaBrowserCompat.MediaItem> mediaItems = null;
     private static Thread lastLoadMediaItemsThread = null;
+    private static boolean loadMediaItemsComplete = false;
     private static boolean stopLastLoadMediaItems = false;
+
     public static ArrayList<MediaBrowserCompat.MediaItem> getMediaItems() { return mediaItems; }
+    public static boolean getLoadMediaItemsComplete() { return loadMediaItemsComplete; }
+    public static void setLoadMediaItemsComplete(boolean loadMediaItemsComplete) { Playlist.loadMediaItemsComplete = loadMediaItemsComplete; }
 
     /** @noinspection StatementWithEmptyBody*/
-    public static void loadMediaItems(Runnable callback) {
+    public static void loadMediaItems() {
         if(lastLoadMediaItemsThread != null) {
             stopLastLoadMediaItems = true;
             while(lastLoadMediaItemsThread.isAlive()) { }
@@ -95,13 +97,13 @@ public class Playlist {
                 mediaItems.add(new MediaBrowserCompat.MediaItem(description, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE));
             }
             Playlist.mediaItems = mediaItems;
-            new Handler(Looper.getMainLooper()).post(callback);
+            loadMediaItemsComplete = true;
         });
         lastLoadMediaItemsThread.start();
     }
 
     public static void reset() {
-        songs = new ArrayList<>(); mediaItems = null; refreshSongsComplete = false; refreshSongsProgress = 0; isAccessingRefreshSongsProgress = false; stopLastRefresh = false;
+        songs = new ArrayList<>(); mediaItems = null; refreshSongsComplete = false; loadMediaItemsComplete = false; refreshSongsProgress = 0; isAccessingRefreshSongsProgress = false; stopLastRefresh = false;
     }
 
 }
