@@ -79,13 +79,16 @@ public class Playlist {
 
     /** @noinspection StatementWithEmptyBody*/
     public static void loadMediaItems() {
+        if(lastLoadMediaItemsThread != null && lastLoadMediaItemsThread.isAlive())
+            return;
         if(lastLoadMediaItemsThread != null) {
             stopLastLoadMediaItems = true;
             while(lastLoadMediaItemsThread.isAlive()) { }
             stopLastLoadMediaItems = false;
         }
         lastLoadMediaItemsThread = new Thread(() -> {
-            while(songs.isEmpty() || lastRefreshSongsThread.isAlive()) { }
+            while((songs.isEmpty() || (lastRefreshSongsThread != null && lastRefreshSongsThread.isAlive())) && !stopLastLoadMediaItems) { }
+            if(stopLastLoadMediaItems) return;
             ArrayList<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
             for(Song song : Playlist.songs) {
                 if(stopLastLoadMediaItems)

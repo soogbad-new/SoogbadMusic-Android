@@ -178,6 +178,8 @@ public class MainActivity extends AppCompatActivity {
     private void onRefreshSongsComplete() {
         Playlist.setRefreshSongsComplete(false);
         Playlist.setRefreshSongsProgress(0);
+        if(MusicService.getInstance() != null)
+            MusicService.getInstance().notifyChildrenChanged(MusicService.MEDIA_ROOT_ID);
         songList.changeSongList(Playlist.getSongs(), false);
         playPauseButton.setEnabled(true); previousButton.setEnabled(true); nextButton.setEnabled(true); searchEditText.setEnabled(true);
         searchEditTextClearFocus();
@@ -499,8 +501,11 @@ public class MainActivity extends AppCompatActivity {
             mediaBrowser.unsubscribe("none");
             mediaBrowser.disconnect();
         }
-        if(MusicService.getInstance() != null)
+        Playlist.reset();
+        if(MusicService.getInstance() != null) {
+            MusicService.getInstance().notifyChildrenChanged(MusicService.MEDIA_ROOT_ID); MusicService.getInstance().notifyChildrenChanged(MusicService.MEDIA_SUGGESTED_ID);
             startService(new Intent(this, MusicService.class).setAction("com.app.soogbadmusic.ACTION_KILL"));
+        }
         songList.reset();
         if(timer != null) {
             timer.cancel(); timer.purge();

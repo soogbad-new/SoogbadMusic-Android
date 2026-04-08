@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -29,14 +30,16 @@ import java.util.Random;
 
 public class MusicService extends MediaBrowserServiceCompat {
 
+    @SuppressWarnings({"FieldCanBeLocal", "RedundantSuppression"})
+    public static final String NOTIFICATION_CHANNEL_ID = "soogbadmusic", MEDIA_ROOT_ID = "media_root", MEDIA_SUGGESTED_ID = "media_suggested";
+
     private static MusicService instance = null;
     public static MusicService getInstance() { return instance; }
 
     private MediaSessionHandler mediaSessionHandler = null;
-    @SuppressWarnings({"FieldCanBeLocal", "RedundantSuppression"})
-    private final String NOTIFICATION_CHANNEL_ID = "soogbadmusic", MEDIA_ROOT_ID = "media_root", MEDIA_SUGGESTED_ID = "media_suggested";
     private final int NOTIFICATION_ID = 6969;
     private boolean isForeground = false;
+    private boolean isLoadingSongs = false;
 
     @Override
     public void onCreate() {
@@ -44,8 +47,25 @@ public class MusicService extends MediaBrowserServiceCompat {
         super.onCreate();
         if(MainActivity.getInstance() == null)
             killService();
-        getSystemService(NotificationManager.class).createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL_ID, "SoogbadMusic", NotificationManager.IMPORTANCE_DEFAULT));
-        mediaSessionHandler = new MediaSessionHandler(this);
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        if(mediaSessionHandler == null) {
+            getSystemService(NotificationManager.class).createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL_ID, "SoogbadMusic", NotificationManager.IMPORTANCE_DEFAULT));
+            mediaSessionHandler = new MediaSessionHandler(this);
+        }
+        return super.onBind(intent);
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        if(mediaSessionHandler != null) {
+            if(mediaSessionHandler.getMediaSession() != null)
+                mediaSessionHandler.getMediaSession().release();
+            mediaSessionHandler = null;
+        }
+        return super.onUnbind(intent);
     }
 
     @Nullable
@@ -61,28 +81,30 @@ public class MusicService extends MediaBrowserServiceCompat {
 
     @Override
     public void onLoadChildren(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
-        if(parentId.equals("none")) {
+        if(parentId.equals("none") || MainActivity.getInstance() == null) {
             result.sendResult(null);
             return;
         }
-        if(Playlist.getMediaItems() == null) {
+        if(Playlist.getMediaItems() == null || isLoadingSongs) {
             result.detach();
             waitForPlaylistMediaItems(parentId, result);
         }
         else
             onPlaylistMediaItemsLoaded(parentId, result);
     }
-
     /** @noinspection StatementWithEmptyBody*/
     private void waitForPlaylistMediaItems(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
-        Playlist.loadMediaItems();
+        if(!isLoadingSongs) {
+            Playlist.loadMediaItems();
+            isLoadingSongs = true;
+        }
         new Thread(() -> {
             while(!Playlist.getLoadMediaItemsComplete()) { }
             Playlist.setLoadMediaItemsComplete(false);
+            isLoadingSongs = false;
             onPlaylistMediaItemsLoaded(parentId, result);
         }).start();
     }
-
     private void onPlaylistMediaItemsLoaded(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
         if(parentId.equals(MEDIA_ROOT_ID))
             result.sendResult(Playlist.getMediaItems());
@@ -152,7 +174,7 @@ public class MusicService extends MediaBrowserServiceCompat {
     public void onDestroy() {
         instance = null;
         super.onDestroy();
-        if(mediaSessionHandler.getMediaSession() != null)
+        if(mediaSessionHandler != null && mediaSessionHandler.getMediaSession() != null)
             mediaSessionHandler.getMediaSession().release();
         if(MainActivity.getInstance() != null)
             MainActivity.getInstance().finishAndRemoveTask();
