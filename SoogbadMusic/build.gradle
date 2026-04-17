@@ -4,7 +4,7 @@ plugins {
 
 android {
     namespace = 'com.soogbad.soogbadmusic'
-    compileSdkVersion = 36
+    compileSdkVersion = 37
     defaultConfig {
         applicationId "com.soogbad.soogbadmusic"
         minSdkVersion 33
