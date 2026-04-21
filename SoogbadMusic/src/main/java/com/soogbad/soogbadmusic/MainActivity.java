@@ -38,8 +38,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.activity.OnBackPressedCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
@@ -106,7 +104,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void handleOnBackPressed() { }
         });
-        pickImageLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(), this::handlePickImageResult);
         checkPermissions();
     }
     private void setWindowProperties() {
@@ -360,7 +357,6 @@ public class MainActivity extends AppCompatActivity {
         menu.add(0, view.getId(), 0, "Add To Queue").setActionView(view);
         if(PlaybackManager.queueContains(song))
             menu.add(0, view.getId(), 0, "Remove From Queue").setActionView(view);
-        menu.add(0, view.getId(), 0, "Song Info").setActionView(view).setEnabled(false);
     }
     @Override
     public boolean onContextItemSelected(@NonNull MenuItem menuItem) {
@@ -372,8 +368,6 @@ public class MainActivity extends AppCompatActivity {
             PlaybackManager.addToQueue(song);
         else if(menuItem.getTitle() == "Remove From Queue")
             PlaybackManager.removeFromQueue(song);
-        else if(menuItem.getTitle() == "Song Info")
-            new SongInfoDialog(this, song);
         else
             return false;
         return true;
@@ -428,18 +422,6 @@ public class MainActivity extends AppCompatActivity {
                 new Handler(Looper.getMainLooper()).postDelayed(() -> PlaybackManager.setPaused(false), 2500);
             }
         }
-    }
-
-    private SongInfoDialog caller = null;
-    ActivityResultLauncher<String> pickImageLauncher = null;
-    public void pickImageDialog(SongInfoDialog caller) {
-        this.caller = caller;
-        if(pickImageLauncher != null)
-            pickImageLauncher.launch("image/*");
-    }
-    private void handlePickImageResult(Uri uri) {
-        if(uri != null && caller != null)
-            caller.setPickImageResult(uri);
     }
 
     @SuppressLint("BatteryLife")
