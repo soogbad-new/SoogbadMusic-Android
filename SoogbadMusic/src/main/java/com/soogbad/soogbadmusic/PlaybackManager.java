@@ -82,7 +82,17 @@ public class PlaybackManager {
         if(queue.isEmpty()) {
             if(currentlyPlayedSongIndex + 1 > history.size() - 1) {
                 if(shuffle) {
-                    Song song = Playlist.getSongs().get(new Random().nextInt(Playlist.getSongs().size()));
+                    ArrayList<Song> songs = new ArrayList<>();
+                    String currentGenre = player != null ? player.getSong().getData().Genre : "";
+                    if(!currentGenre.isEmpty())
+                        for(Song song : Playlist.getSongs())
+                            if(currentGenre.equals(song.getData().Genre))
+                                songs.add(song);
+                    if(songs.size() < 2)
+                        songs = Playlist.getSongs();
+                    Song song = songs.get(new Random().nextInt(songs.size()));
+                    while(getPlayer() != null && getPlayer().getSong() == song)
+                        song = songs.get(new Random().nextInt(songs.size()));
                     if(!song.getFile().exists()) {
                         nextSong();
                         return;

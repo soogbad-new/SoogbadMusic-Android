@@ -9,14 +9,15 @@ import java.util.Arrays;
 
 public class SongData {
 
-    public SongData(String title, String artist, String album, int year, Bitmap albumCover, String lyrics) {
-        Title = title != null ? title : ""; Artist = artist != null ? artist : ""; Album = album != null ? album : ""; Year = year; AlbumCover = albumCover; Lyrics = lyrics != null ? lyrics : "";
+    public SongData(String title, String artist, String album, int year, String genre, Bitmap albumCover, String lyrics) {
+        Title = title != null ? title : ""; Artist = artist != null ? artist : ""; Album = album != null ? album : ""; Year = year; Genre = genre != null ? genre : ""; AlbumCover = albumCover; Lyrics = lyrics != null ? lyrics : "";
     }
 
     public final String Title;
     public final String Artist;
     public final String Album;
     public final int Year;
+    public final String Genre;
     public Bitmap AlbumCover;
     public String Lyrics;
 
@@ -25,7 +26,7 @@ public class SongData {
         if(!advanced)
             return contains(removeSpecialCharacters(Artist.toLowerCase()), realKey) || contains(removeSpecialCharacters(Title.toLowerCase()), realKey);
         else
-            return contains(removeSpecialCharacters(Artist.toLowerCase()), realKey) || contains(removeSpecialCharacters(Title.toLowerCase()), realKey) || contains(removeSpecialCharacters(Album.toLowerCase()), realKey) || contains(removeSpecialCharacters(Integer.toString(Year).toLowerCase()), realKey) || contains(removeSpecialCharacters(Lyrics.toLowerCase()), realKey);
+            return contains(removeSpecialCharacters(Artist.toLowerCase()), realKey) || contains(removeSpecialCharacters(Title.toLowerCase()), realKey) || contains(removeSpecialCharacters(Album.toLowerCase()), realKey) || contains(removeSpecialCharacters(Integer.toString(Year).toLowerCase()), realKey) || contains(removeSpecialCharacters(Genre.toLowerCase()), realKey) || contains(removeSpecialCharacters(Lyrics.toLowerCase()), realKey);
     }
     public static boolean contains(MediaBrowserCompat.MediaItem mediaItem, String key) {
         String realKey = removeSpecialCharacters(key.toLowerCase());
