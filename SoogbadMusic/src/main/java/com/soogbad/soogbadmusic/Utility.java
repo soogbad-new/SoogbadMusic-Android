@@ -3,10 +3,7 @@ package com.soogbad.soogbadmusic;
 import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
-import android.graphics.Bitmap;
 import android.graphics.Rect;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.TextView;
@@ -25,10 +22,6 @@ public class Utility {
 
     public static int dpToPixels(int dp, DisplayMetrics displayMetrics) {
         return (int)(dp * (displayMetrics.densityDpi / 160.0));
-    }
-
-    public static Bitmap getBitmap(Drawable drawable) {
-        return drawable == null ? null : ((BitmapDrawable)drawable).getBitmap();
     }
 
     public static String formatTime(double seconds) {

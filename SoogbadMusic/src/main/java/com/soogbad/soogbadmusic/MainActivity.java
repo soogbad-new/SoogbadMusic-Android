@@ -494,6 +494,4 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public SongList getSongList() { return songList; }
-
 }
