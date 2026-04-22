@@ -355,8 +355,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         menu.setHeaderTitle(song.getData().Artist + " - " + song.getData().Title);
         menu.add(0, view.getId(), 0, "Add To Queue").setActionView(view);
-        if(PlaybackManager.queueContains(song))
-            menu.add(0, view.getId(), 0, "Remove From Queue").setActionView(view);
+        menu.add(0, view.getId(), 0, "Remove From Queue").setActionView(view).setEnabled(PlaybackManager.queueContains(song));
     }
     @Override
     public boolean onContextItemSelected(@NonNull MenuItem menuItem) {
