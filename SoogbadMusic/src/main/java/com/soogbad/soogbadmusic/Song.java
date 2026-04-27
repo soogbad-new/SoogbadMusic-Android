@@ -34,7 +34,15 @@ public final class Song {
             String yearStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_YEAR);
             if(yearStr != null)
                 year = Integer.parseInt(yearStr);
-            data = new SongData(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE), retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST), retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM), year, retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE), null, "");
+            String genre = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE);
+            if(genre == null || genre.isEmpty()) {
+                try {
+                    AudioFile audioFile = AudioFileIO.read(file);
+                    if(audioFile != null && audioFile.getTag() != null)
+                        genre = audioFile.getTag().getFirst(FieldKey.GENRE);
+                } catch(Exception ignored) {}
+            }
+            data = new SongData(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE), retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST), retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM), year, genre, null, "");
         }
         catch(IOException e) {
             //noinspection CallToPrintStackTrace
