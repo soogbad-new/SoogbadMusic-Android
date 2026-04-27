@@ -13,24 +13,24 @@ public class PlaybackManager {
     private static boolean filter = true;
     private static ArrayList<Song> queue = new ArrayList<>();
 
-    private static final ArrayList<EmptyListener> onPausedValueChangedListeners = new ArrayList<>();
-    public static void addOnPausedValueChangedListener(EmptyListener listener) {
+    private static final ArrayList<Utility.EmptyListener> onPausedValueChangedListeners = new ArrayList<>();
+    public static void addOnPausedValueChangedListener(Utility.EmptyListener listener) {
         onPausedValueChangedListeners.add(listener);
     }
-    private static final ArrayList<EmptyListener> onSongChangedListeners = new ArrayList<>();
-    public static void addOnSongChangedListener(EmptyListener listener) {
+    private static final ArrayList<Utility.EmptyListener> onSongChangedListeners = new ArrayList<>();
+    public static void addOnSongChangedListener(Utility.EmptyListener listener) {
         onSongChangedListeners.add(listener);
     }
     public static void raiseOnSongChanged() {
         if(getPlayer().getSong().getData().AlbumCover == null || getPlayer().getSong().getData().Lyrics.isEmpty())
             getPlayer().getSong().loadAlbumCoverAndLyrics();
-        for(EmptyListener listener : onSongChangedListeners)
+        for(Utility.EmptyListener listener : onSongChangedListeners)
             listener.onListenerInvoked();
         if(MusicService.getInstance() != null)
             MusicService.getInstance().updateMediaSessionData();
     }
     private static void raiseOnPausedValueChanged() {
-        for(EmptyListener listener : onPausedValueChangedListeners)
+        for(Utility.EmptyListener listener : onPausedValueChangedListeners)
             listener.onListenerInvoked();
     }
 

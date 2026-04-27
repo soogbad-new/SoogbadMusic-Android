@@ -13,8 +13,8 @@ public class Player {
     private boolean stopped = false;
     private final MediaPlayer mediaPlayer;
 
-    private final ArrayList<EmptyListener> onPlaybackCompletedListeners = new ArrayList<>();
-    public void addOnPlaybackCompletedListener(EmptyListener listener) {
+    private final ArrayList<Utility.EmptyListener> onPlaybackCompletedListeners = new ArrayList<>();
+    public void addOnPlaybackCompletedListener(Utility.EmptyListener listener) {
         onPlaybackCompletedListeners.add(listener);
     }
 
@@ -25,12 +25,12 @@ public class Player {
         mediaPlayer.setAudioAttributes(new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build());
         mediaPlayer.setOnCompletionListener(mediaPlayer -> {
             stopped = true;
-            for(EmptyListener listener : onPlaybackCompletedListeners)
+            for(Utility.EmptyListener listener : onPlaybackCompletedListeners)
                 listener.onListenerInvoked();
         });
         mediaPlayer.setOnErrorListener((mediaPlayer, errorType, extraErrorCode) -> {
             stopped = true;
-            for(EmptyListener listener : onPlaybackCompletedListeners)
+            for(Utility.EmptyListener listener : onPlaybackCompletedListeners)
                 listener.onListenerInvoked();
             return false;
         });

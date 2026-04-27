@@ -45,4 +45,8 @@ public class Utility {
         textView.setText(text.replaceAll(" \\.\\.\\.", "..."));
     }
 
+    public interface EmptyListener {
+        void onListenerInvoked();
+    }
+
 }
