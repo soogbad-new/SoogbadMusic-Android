@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Playlist {
 
@@ -47,17 +48,23 @@ public class Playlist {
                 stream.forEach(files::add);
             } catch(IOException e) { throw new RuntimeException(e); }
             int i = 0;
-            ArrayList<Song> songs = new ArrayList<>();
-            for(Path filePath : files) {
+            HashMap<String, Song> previousSongs = new HashMap<>(songs.size() * 2);
+            for(Song song : songs) previousSongs.put(song.getFile().getAbsolutePath(), song);
+            ArrayList<Song> newSongs = new ArrayList<>(files.size());
+            for(Path file : files) {
                 if(stopLastRefresh)
                     return;
-                songs.add(new Song(filePath.toFile()));
+                String filePath = file.toFile().getAbsolutePath();
+                if(previousSongs.containsKey(filePath))
+                    newSongs.add(previousSongs.get(filePath));
+                else
+                    newSongs.add(new Song(file.toFile()));
                 isAccessingRefreshSongsProgress = true;
                 refreshSongsProgress = (double)i / files.size();
                 isAccessingRefreshSongsProgress = false;
                 i++;
             }
-            Playlist.songs = songs;
+            songs = newSongs;
             sortSongs();
             refreshSongsComplete = true;
         });
@@ -90,7 +97,7 @@ public class Playlist {
             while((songs.isEmpty() || (lastRefreshSongsThread != null && lastRefreshSongsThread.isAlive())) && !stopLastLoadMediaItems) { }
             if(stopLastLoadMediaItems) return;
             ArrayList<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
-            for(Song song : Playlist.songs) {
+            for(Song song : songs) {
                 if(stopLastLoadMediaItems)
                     return;
                 song.loadAlbumCoverAndLyrics();
