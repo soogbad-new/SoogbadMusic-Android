@@ -52,8 +52,10 @@ public class Playlist {
             for(Song song : songs) previousSongs.put(song.getFile().getAbsolutePath(), song);
             ArrayList<Song> newSongs = new ArrayList<>(files.size());
             for(Path file : files) {
-                if(stopLastRefresh)
+                if(stopLastRefresh) {
+                    songs = newSongs;
                     return;
+                }
                 String filePath = file.toFile().getAbsolutePath();
                 if(previousSongs.containsKey(filePath))
                     newSongs.add(previousSongs.get(filePath));
