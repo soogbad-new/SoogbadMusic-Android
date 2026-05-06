@@ -47,9 +47,10 @@ public class Playlist {
                     : Files.newDirectoryStream(directory, "*.mp3")) {
                 stream.forEach(files::add);
             } catch(IOException e) { throw new RuntimeException(e); }
-            int i = 0;
             HashMap<String, Song> previousSongs = new HashMap<>(songs.size() * 2);
             for(Song song : songs) previousSongs.put(song.getFile().getAbsolutePath(), song);
+            int newSongsTotal = files.size() - previousSongs.size();
+            int newSongsProcessed = 0;
             ArrayList<Song> newSongs = new ArrayList<>(files.size());
             for(Path file : files) {
                 if(stopLastRefresh) {
@@ -59,12 +60,13 @@ public class Playlist {
                 String filePath = file.toFile().getAbsolutePath();
                 if(previousSongs.containsKey(filePath))
                     newSongs.add(previousSongs.get(filePath));
-                else
+                else {
                     newSongs.add(new Song(file.toFile()));
-                isAccessingRefreshSongsProgress = true;
-                refreshSongsProgress = (double)i / files.size();
-                isAccessingRefreshSongsProgress = false;
-                i++;
+                    isAccessingRefreshSongsProgress = true;
+                    refreshSongsProgress = (double)newSongsProcessed / newSongsTotal;
+                    isAccessingRefreshSongsProgress = false;
+                    newSongsProcessed++;
+                }
             }
             songs = newSongs;
             sortSongs();
