@@ -10,7 +10,7 @@
     android:onClick="onSearchEditTextLoseFocus"
     tools:ignore="HardcodedText,RtlHardcoded,LabelFor">
 
-    <androidx.appcompat.widget.Toolbar
+    <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -18,6 +18,7 @@
         app:popupTheme="@style/AppTheme.PopupOverlay"
         app:title="@string/app_name"
         app:titleTextColor="@color/white"
+        app:titleTextAppearance="@style/ToolbarTitle"
         android:onClick="onSearchEditTextLoseFocus"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -58,7 +59,7 @@
                 android:background="@android:color/transparent"
                 android:contentDescription="Lyrics" />
         </LinearLayout>
-    </androidx.appcompat.widget.Toolbar>
+    </com.google.android.material.appbar.MaterialToolbar>
 
     <include
         android:id="@+id/include"
@@ -79,6 +80,7 @@
 
     <TextView
         android:id="@+id/songNameTextView"
+
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginLeft="10dp"
