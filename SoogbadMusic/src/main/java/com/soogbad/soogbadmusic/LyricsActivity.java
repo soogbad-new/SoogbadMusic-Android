@@ -34,7 +34,8 @@ public class LyricsActivity extends AppCompatActivity {
         songNameTextView = findViewById(R.id.lyricsSongNameTextView); songInfoTextView = findViewById(R.id.lyricsSongInfoTextView); songLyricsTextView = findViewById(R.id.songLyrics);
         ViewCompat.setOnApplyWindowInsetsListener(constraintLayout, (view, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            findViewById(R.id.lyricsToolbar).setPadding(0, systemBars.top, 0, 0);
+            view.setPadding(systemBars.left, 0, systemBars.right, systemBars.bottom);
             return insets;
         });
         PlaybackManager.addOnSongChangedListener(this::onSongChanged);
