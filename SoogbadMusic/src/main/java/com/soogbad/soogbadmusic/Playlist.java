@@ -108,6 +108,7 @@ public class Playlist {
                         .setTitle(song.getData().Title).setArtist(song.getData().Artist).setAlbumTitle(song.getData().Album).setReleaseYear(song.getData().Year)
                         .setDurationMs((long)(song.getDuration() * 1000)).build();
                 MediaItem mediaItem = new MediaItem.Builder().setMediaId(song.getPath()).setUri(Uri.fromFile(song.getFile())).setMediaMetadata(metadata).build();
+                song.setMediaItem(mediaItem);
                 mediaItems.add(mediaItem);
             }
             Playlist.mediaItems = mediaItems;

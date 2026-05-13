@@ -36,14 +36,21 @@ public class Player {
                 notifyCompletion();
             }
         });
-        mediaPlayer.setMediaItem(MediaItem.fromUri(Uri.fromFile(song.getFile())));
+        if(song.getMediaItem() != null)
+            mediaPlayer.setMediaItem(song.getMediaItem());
+        else
+            mediaPlayer.setMediaItem(MediaItem.fromUri(Uri.fromFile(song.getFile())));
         mediaPlayer.prepare();
     }
 
     public Song getSong() {
         return song;
     }
+
+    public ExoPlayer getExoPlayer() { return mediaPlayer; }
+
     public boolean getStopped() { return stopped; }
+    
     public double getCurrentTime() {
         if(stopped)
             return getSong().getDuration();
