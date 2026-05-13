@@ -28,12 +28,6 @@ public class SongData {
         else
             return contains(removeSpecialCharacters(Artist.toLowerCase()), realKey) || contains(removeSpecialCharacters(Title.toLowerCase()), realKey) || contains(removeSpecialCharacters(Album.toLowerCase()), realKey) || contains(removeSpecialCharacters(Integer.toString(Year).toLowerCase()), realKey) || contains(removeSpecialCharacters(Genre.toLowerCase()), realKey) || contains(removeSpecialCharacters(Lyrics.toLowerCase()), realKey);
     }
-    public static boolean containsText(String text, String key) {
-        if(text == null || key == null)
-            return false;
-        String realKey = removeSpecialCharacters(key.toLowerCase());
-        return contains(removeSpecialCharacters(text.toLowerCase()), realKey);
-    }
     public static boolean contains(MediaMetadata metadata, String key) {
         String realKey = removeSpecialCharacters(key.toLowerCase());
         String title = metadata.title != null ? removeSpecialCharacters(metadata.title.toString().toLowerCase()) : "";

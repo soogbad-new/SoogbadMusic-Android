@@ -1,14 +1,12 @@
 package com.soogbad.soogbadmusic;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.os.Bundle;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.media3.common.ForwardingPlayer;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.MediaMetadata;
-import androidx.media3.common.Player;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.session.LibraryResult;
 import androidx.media3.session.MediaLibraryService;
@@ -50,6 +48,7 @@ public class MusicService extends MediaLibraryService {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        super.onStartCommand(intent, flags, startId);
         if (intent != null && intent.getAction() != null) {
             if(intent.getAction().equals("com.app.soogbadmusic.ACTION_PREV"))
                 PlaybackManager.previousSong();
@@ -88,6 +87,7 @@ public class MusicService extends MediaLibraryService {
             mediaLibrarySession.setPlayer(wrapPlayer(player));
         }
     }
+    @SuppressLint("UnsafeOptInUsageError")
     private ForwardingPlayer wrapPlayer(ExoPlayer player) {
         return new ForwardingPlayer(player) {
             @Override public void seekToNext() { PlaybackManager.nextSong(); }
@@ -129,6 +129,7 @@ public class MusicService extends MediaLibraryService {
             return Futures.immediateFuture(LibraryResult.ofItemList(ImmutableList.copyOf(results), params));
         }
 
+        @SuppressLint("UnsafeOptInUsageError")
         @NonNull @Override
         public ListenableFuture<MediaSession.MediaItemsWithStartPosition> onSetMediaItems(@NonNull MediaSession session, @NonNull MediaSession.ControllerInfo controller, @NonNull java.util.List<MediaItem> mediaItems, int startIndex, long startPositionMs) {
             if(!mediaItems.isEmpty()) {
