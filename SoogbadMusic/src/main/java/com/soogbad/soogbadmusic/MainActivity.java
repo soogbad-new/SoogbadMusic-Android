@@ -3,15 +3,11 @@ package com.soogbad.soogbadmusic;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-import android.media.AudioDeviceCallback;
-import android.media.AudioDeviceInfo;
-import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -19,9 +15,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.provider.Settings;
-import android.support.v4.media.MediaBrowserCompat;
-import android.telephony.TelephonyCallback;
-import android.telephony.TelephonyManager;
+
+import androidx.media3.session.MediaBrowser;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.ContextMenu;
@@ -47,15 +42,20 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.media3.session.MediaLibraryService;
+import androidx.media3.session.SessionToken;
 
 import com.google.android.material.shape.CornerFamily;
 import com.google.android.material.shape.MaterialShapeDrawable;
 import com.google.android.material.shape.ShapeAppearanceModel;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
     public static MainActivity getInstance() { return instance; }
 
     private Timer timer;
-    private MediaBrowserCompat mediaBrowser;
+    private MediaBrowser mediaBrowser;
 
     private ConstraintLayout constraintLayout;
     private ImageButton shuffleButton, filterButton, playPauseButton, previousButton, nextButton, advancedSearchButton;
@@ -75,8 +75,8 @@ public class MainActivity extends AppCompatActivity {
     private EditText searchEditText;
 
     private Drawable defaultSearchbarBackground;
-    private int defaultSearchbarHeight = 0, previousCallState = TelephonyManager.CALL_STATE_IDLE;
-    private boolean advancedSearch = false, startedLyrics = false, wasPausedBeforeCall = true;
+    private int defaultSearchbarHeight = 0;
+    private boolean advancedSearch = false, startedLyrics = false;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -114,22 +114,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void onPermissionsGranted() {
-        ((TelephonyManager)getSystemService(TELEPHONY_SERVICE)).registerTelephonyCallback(getMainExecutor(), telephonyCallback);
-        AudioManager audioManager = (AudioManager)getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-        AudioDeviceCallback audioDeviceCallback = new AudioDeviceCallback() {
-            @Override
-            public void onAudioDevicesAdded(AudioDeviceInfo[] addedDevices) { super.onAudioDevicesAdded(addedDevices); PlaybackManager.setPaused(true); }
-            @Override
-            public void onAudioDevicesRemoved(AudioDeviceInfo[] removedDevices) { super.onAudioDevicesRemoved(removedDevices); PlaybackManager.setPaused(true); }
-        };
-        audioManager.registerAudioDeviceCallback(audioDeviceCallback, new Handler(Looper.getMainLooper()));
         Playlist.reset();
         Playlist.refreshSongs();
-        mediaBrowser = new MediaBrowserCompat(this, new ComponentName(this, MusicService.class), new MediaBrowserCompat.ConnectionCallback() {
-            @Override
-            public void onConnected() { super.onConnected(); mediaBrowser.subscribe("none", new MediaBrowserCompat.SubscriptionCallback() {}); }
-        }, null);
-        mediaBrowser.connect();
+        ListenableFuture<MediaBrowser> mediaBrowserFuture = new MediaBrowser.Builder(this, new SessionToken(this, new ComponentName(this, MusicService.class))).buildAsync();
+        mediaBrowserFuture.addListener(() -> {
+            try {
+                mediaBrowser = mediaBrowserFuture.get();
+                mediaBrowser.subscribe("none", new MediaLibraryService.LibraryParams.Builder().build());
+            }
+            catch(ExecutionException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }, MoreExecutors.directExecutor());
         timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override
@@ -398,23 +394,6 @@ public class MainActivity extends AppCompatActivity {
         return insets;
     }
 
-    private final MyTelephonyCallback telephonyCallback = new MyTelephonyCallback();
-    private class MyTelephonyCallback extends TelephonyCallback implements TelephonyCallback.CallStateListener {
-        @Override
-        public void onCallStateChanged(int state) {
-            if(state == TelephonyManager.CALL_STATE_RINGING || state == TelephonyManager.CALL_STATE_OFFHOOK) {
-                if(previousCallState == TelephonyManager.CALL_STATE_IDLE) {
-                    wasPausedBeforeCall = PlaybackManager.getPaused();
-                    PlaybackManager.setPaused(true);
-                }
-                previousCallState = state;
-            } else if(state == TelephonyManager.CALL_STATE_IDLE && !wasPausedBeforeCall) {
-                previousCallState = state;
-                new Handler(Looper.getMainLooper()).postDelayed(() -> PlaybackManager.setPaused(false), 2500);
-            }
-        }
-    }
-
     @SuppressLint("BatteryLife")
     private void checkPermissions() {
         ArrayList<String> permissions = new ArrayList<>();
@@ -468,11 +447,10 @@ public class MainActivity extends AppCompatActivity {
         PlaybackManager.setPaused(true);
         if(PlaybackManager.getPlayer() != null)
             PlaybackManager.getPlayer().release();
-        ((TelephonyManager)getSystemService(TELEPHONY_SERVICE)).unregisterTelephonyCallback(telephonyCallback);
         PlaybackManager.reset();
         if(mediaBrowser != null && mediaBrowser.isConnected()) {
             mediaBrowser.unsubscribe("none");
-            mediaBrowser.disconnect();
+            mediaBrowser.release();
         }
         Playlist.reset();
         if(MusicService.getInstance() != null) {
