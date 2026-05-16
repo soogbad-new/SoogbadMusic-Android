@@ -2,6 +2,8 @@ package com.soogbad.soogbadmusic;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.media3.common.ForwardingPlayer;
@@ -49,7 +51,7 @@ public class MusicService extends MediaLibraryService {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
-        if (intent != null && intent.getAction() != null) {
+        if(intent != null && intent.getAction() != null) {
             if(intent.getAction().equals("com.app.soogbadmusic.ACTION_PREV"))
                 PlaybackManager.previousSong();
             else if(intent.getAction().equals("com.app.soogbadmusic.ACTION_NEXT"))
