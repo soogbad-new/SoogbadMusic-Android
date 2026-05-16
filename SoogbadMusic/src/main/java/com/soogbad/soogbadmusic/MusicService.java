@@ -92,7 +92,7 @@ public class MusicService extends MediaLibraryService {
         return new ForwardingPlayer(player) {
             @Override public void play() { PlaybackManager.setPaused(false); }
             @Override public void pause() { PlaybackManager.setPaused(true); }
-            @Override public void seekTo(long positionMs) { PlaybackManager.setCurrentTime(positionMs / 1000.0); }
+            @Override public void seekTo(long positionMs) { PlaybackManager.setCurrentTime(positionMs); }
             @Override public boolean isCommandAvailable(int command) { return command == COMMAND_SEEK_TO_NEXT || command == COMMAND_SEEK_TO_NEXT_MEDIA_ITEM || command == COMMAND_SEEK_TO_PREVIOUS || command == COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM || super.isCommandAvailable(command); }
             @NonNull @Override public Commands getAvailableCommands() { return super.getAvailableCommands().buildUpon().add(COMMAND_SEEK_TO_NEXT).add(COMMAND_SEEK_TO_NEXT_MEDIA_ITEM).add(COMMAND_SEEK_TO_PREVIOUS).add(COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM).build(); }
             @Override public void seekToNext() { PlaybackManager.nextSong(); }

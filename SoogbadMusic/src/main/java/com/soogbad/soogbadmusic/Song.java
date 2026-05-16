@@ -16,7 +16,7 @@ import java.io.IOException;
 public final class Song {
 
     private final File file;
-    private double duration;
+    private long duration;
     private SongData data;
     private MediaItem mediaItem;
 
@@ -31,7 +31,7 @@ public final class Song {
         try(MediaMetadataRetriever retriever = new MediaMetadataRetriever()) {
             retriever.setDataSource(getPath());
             String durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-            duration = durationStr != null ? Integer.parseInt(durationStr) / 1000.0 : 0;
+            duration = durationStr != null ? Long.parseLong(durationStr) : 0;
             int year = 0;
             String yearStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_YEAR);
             if(yearStr != null)
@@ -72,7 +72,7 @@ public final class Song {
 
     public String getPath() { return file.getAbsolutePath(); }
 
-    public double getDuration() { return duration; }
+    public long getDuration() { return duration; }
 
     public SongData getData() { return data; }
 
