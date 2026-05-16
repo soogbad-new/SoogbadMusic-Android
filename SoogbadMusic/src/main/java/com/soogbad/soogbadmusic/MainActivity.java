@@ -218,7 +218,7 @@ public class MainActivity extends AppCompatActivity {
         public void onClick(View view) {
             searchEditTextClearFocus();
             if(PlaybackManager.getPlayer() != null && !Playlist.isAccessingRefreshSongsProgress() && Playlist.getRefreshSongsProgress() == 0 && progressBarTouchLocation != -1) {
-                double time = (double) progressBarTouchLocation / progressBarBackground.getWidth() * PlaybackManager.getPlayer().getSong().getDuration();
+                double time = (double)progressBarTouchLocation / progressBarBackground.getWidth() * PlaybackManager.getPlayer().getSong().getDuration();
                 progressBarTouchLocation = -1;
                 if(time > PlaybackManager.getPlayer().getSong().getDuration() - 1)
                     time = PlaybackManager.getPlayer().getSong().getDuration() - 1;
