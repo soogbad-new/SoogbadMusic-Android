@@ -26,7 +26,7 @@ public class MusicService extends MediaLibraryService {
     private static MusicService instance = null;
     public static MusicService getInstance() { return instance; }
 
-    private MediaLibrarySession mediaLibrarySession = null;
+    private MediaLibrarySession mediaSession = null;
     private boolean isLoadingSongs = false;
 
     @Override
@@ -39,11 +39,11 @@ public class MusicService extends MediaLibraryService {
 
     @Override
     public MediaLibrarySession onGetSession(@NonNull MediaSession.ControllerInfo controllerInfo) {
-        if(mediaLibrarySession == null) {
+        if(mediaSession == null) {
             ExoPlayer player = new ExoPlayer.Builder(this).build();
-            mediaLibrarySession = new MediaLibrarySession.Builder(this, wrapPlayer(player), new MusicLibrarySessionCallback()).setId("SoogbadMusic").build();
+            mediaSession = new MediaLibrarySession.Builder(this, wrapPlayer(player), new MusicLibrarySessionCallback()).setId("SoogbadMusic").build();
         }
-        return mediaLibrarySession;
+        return mediaSession;
     }
 
     @Override
@@ -64,10 +64,10 @@ public class MusicService extends MediaLibraryService {
 
     @Override
     public void onDestroy() {
-        if(mediaLibrarySession != null) {
-            mediaLibrarySession.getPlayer().release();
-            mediaLibrarySession.release();
-            mediaLibrarySession = null;
+        if(mediaSession != null) {
+            mediaSession.getPlayer().release();
+            mediaSession.release();
+            mediaSession = null;
         }
         instance = null;
         super.onDestroy();
@@ -76,15 +76,15 @@ public class MusicService extends MediaLibraryService {
     }
 
     public void notifyChildrenChanged(String parentId) {
-        if(mediaLibrarySession != null)
-            mediaLibrarySession.notifyChildrenChanged(parentId, 0, null);
+        if(mediaSession != null)
+            mediaSession.notifyChildrenChanged(parentId, 0, null);
     }
 
     public void setSessionPlayer(ExoPlayer player) {
-        if(mediaLibrarySession != null) {
-            if(mediaLibrarySession.getPlayer().getMediaItemCount() == 0)
-                mediaLibrarySession.getPlayer().release();
-            mediaLibrarySession.setPlayer(wrapPlayer(player));
+        if(mediaSession != null) {
+            if(mediaSession.getPlayer().getMediaItemCount() == 0)
+                mediaSession.getPlayer().release();
+            mediaSession.setPlayer(wrapPlayer(player));
         }
     }
     @SuppressLint("UnsafeOptInUsageError")
