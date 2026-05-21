@@ -12,6 +12,7 @@ import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.session.LibraryResult;
 import androidx.media3.session.MediaLibraryService;
 import androidx.media3.session.MediaSession;
+import androidx.media3.session.SessionError;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
@@ -110,11 +111,11 @@ public class MusicService extends MediaLibraryService {
             return Futures.immediateFuture(LibraryResult.ofItem(rootItem, params));
         }
 
-        
+        @SuppressLint("UnsafeOptInUsageError")
         @NonNull @Override
         public ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> onGetChildren(@NonNull MediaLibrarySession session, @NonNull MediaSession.ControllerInfo browser, @NonNull String parentId, int page, int pageSize, @Nullable LibraryParams params) {
             if(parentId.equals("none") || MainActivity.getInstance() == null)
-                return Futures.immediateFuture(LibraryResult.ofError(LibraryResult.RESULT_ERROR_UNKNOWN));
+                return Futures.immediateFuture(LibraryResult.ofError(SessionError.ERROR_UNKNOWN, params));
             if(Playlist.getMediaItems() == null || isLoadingSongs)
                 return waitForPlaylistMediaItems(parentId, params);
             else
