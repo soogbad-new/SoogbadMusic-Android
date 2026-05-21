@@ -114,9 +114,9 @@ public class MusicService extends MediaLibraryService {
         @SuppressLint("UnsafeOptInUsageError")
         @NonNull @Override
         public ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> onGetChildren(@NonNull MediaLibrarySession session, @NonNull MediaSession.ControllerInfo browser, @NonNull String parentId, int page, int pageSize, @Nullable LibraryParams params) {
-            if(parentId.equals("none") || MainActivity.getInstance() == null)
-                return Futures.immediateFuture(LibraryResult.ofError(SessionError.ERROR_UNKNOWN, params));
-            if(Playlist.getMediaItems() == null || isLoadingSongs)
+            if(parentId.equals("none"))
+                return Futures.immediateFuture(LibraryResult.ofItemList(ImmutableList.of(), params));
+            if(Playlist.getMediaItems() == null || isLoadingSongs || MainActivity.getInstance() == null)
                 return waitForPlaylistMediaItems(parentId, params);
             else
                 return Futures.immediateFuture(getChildrenResult(parentId, params));
