@@ -34,8 +34,6 @@ public class MusicService extends MediaLibraryService {
     public void onCreate() {
         instance = this;
         super.onCreate();
-        if(MainActivity.getInstance() == null)
-            stopSelf();
     }
 
     @Override
@@ -116,7 +114,7 @@ public class MusicService extends MediaLibraryService {
         @NonNull @Override
         public ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> onGetChildren(@NonNull MediaLibrarySession session, @NonNull MediaSession.ControllerInfo browser, @NonNull String parentId, int page, int pageSize, @Nullable LibraryParams params) {
             if(parentId.equals("none") || MainActivity.getInstance() == null)
-                return Futures.immediateFuture(LibraryResult.ofItemList(ImmutableList.of(), params));
+                return Futures.immediateFuture(LibraryResult.ofError(LibraryResult.RESULT_ERROR_UNKNOWN));
             if(Playlist.getMediaItems() == null || isLoadingSongs)
                 return waitForPlaylistMediaItems(parentId, params);
             else
