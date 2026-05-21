@@ -23,7 +23,7 @@ import java.util.Random;
 
 public class MusicService extends MediaLibraryService {
 
-    public static final String MEDIA_ROOT_ID = "media_root", MEDIA_SUGGESTED_ID = "media_suggested";
+    public static final String MEDIA_ROOT_ID = "media_root";
 
     private static MusicService instance = null;
     public static MusicService getInstance() { return instance; }
@@ -106,6 +106,8 @@ public class MusicService extends MediaLibraryService {
 
         @NonNull @Override
         public ListenableFuture<LibraryResult<MediaItem>> onGetLibraryRoot(@NonNull MediaLibrarySession session, @NonNull MediaSession.ControllerInfo browser, @Nullable LibraryParams params) {
+            if(params != null && (params.isRecent || params.isSuggested))
+                return Futures.immediateFuture(LibraryResult.ofError(SessionError.ERROR_NOT_SUPPORTED));
             MediaMetadata metadata = new MediaMetadata.Builder().setIsBrowsable(true).setIsPlayable(false).build();
             MediaItem rootItem = new MediaItem.Builder().setMediaId(MEDIA_ROOT_ID).setMediaMetadata(metadata).build();
             return Futures.immediateFuture(LibraryResult.ofItem(rootItem, params));
@@ -164,20 +166,6 @@ public class MusicService extends MediaLibraryService {
         if(parentId.equals(MEDIA_ROOT_ID)) {
             ArrayList<MediaItem> items = Playlist.getMediaItems();
             return LibraryResult.ofItemList(items != null ? ImmutableList.copyOf(items) : ImmutableList.of(), params);
-        }
-        else if(parentId.equals(MEDIA_SUGGESTED_ID)) {
-            ArrayList<MediaItem> forYou = new ArrayList<>();
-            ArrayList<MediaItem> mediaItems = Playlist.getMediaItems();
-            if(mediaItems != null && mediaItems.size() >= 4) {
-                Random random = new Random();
-                for(int i = 1; i <= 4; i++) {
-                    MediaItem suggestedItem = mediaItems.get(random.nextInt(mediaItems.size()));
-                    while(forYou.contains(suggestedItem))
-                        suggestedItem = mediaItems.get(new Random().nextInt(mediaItems.size()));
-                    forYou.add(suggestedItem);
-                }
-            }
-            return LibraryResult.ofItemList(ImmutableList.copyOf(forYou), params);
         }
         else
             return LibraryResult.ofItemList(ImmutableList.of(), params);
