@@ -26,6 +26,8 @@ public class PlaybackManager {
             getPlayer().getSong().loadAlbumCoverAndLyrics();
         for(Utility.EmptyListener listener : onSongChangedListeners)
             listener.onListenerInvoked();
+        if(MusicService.getInstance() != null)
+            MusicService.getInstance().updateMediaSessionData();
     }
     private static void raiseOnPausedValueChanged() {
         for(Utility.EmptyListener listener : onPausedValueChangedListeners)
@@ -57,6 +59,8 @@ public class PlaybackManager {
             else
                 player.play();
         }
+        if(MusicService.getInstance() != null)
+            MusicService.getInstance().updateMediaSessionPlaybackState(paused, player.getCurrentTime());
         raiseOnPausedValueChanged();
     }
 
@@ -164,8 +168,10 @@ public class PlaybackManager {
         return queue.contains(song);
     }
 
-    public static void setCurrentTime(long time) {
+    public static void setCurrentTime(double time) {
         getPlayer().setCurrentTime(time);
+        if(MusicService.getInstance() != null)
+            MusicService.getInstance().updateMediaSessionPlaybackState(getPaused(), player.getCurrentTime());
     }
 
     public static void reset() {

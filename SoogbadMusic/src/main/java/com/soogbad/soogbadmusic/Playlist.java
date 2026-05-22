@@ -89,7 +89,6 @@ public class Playlist {
 
     /** @noinspection StatementWithEmptyBody*/
     public static void loadMediaItems() {
-        System.out.println("AAAAA loadMediaItems");
         if(lastLoadMediaItemsThread != null && lastLoadMediaItemsThread.isAlive())
             return;
         if(lastLoadMediaItemsThread != null) {
@@ -107,14 +106,13 @@ public class Playlist {
                 song.loadAlbumCoverAndLyrics();
                 MediaMetadata metadata = new MediaMetadata.Builder().setDisplayTitle(song.getData().Title).setSubtitle(song.getData().Artist).setDescription(song.getData().Album)
                         .setTitle(song.getData().Title).setArtist(song.getData().Artist).setAlbumTitle(song.getData().Album).setReleaseYear(song.getData().Year)
-                        .setDurationMs(song.getDuration()).setIsPlayable(true).setIsBrowsable(false).build();
+                        .setDurationMs((long)(song.getDuration() * 1000)).build();
                 MediaItem mediaItem = new MediaItem.Builder().setMediaId(song.getPath()).setUri(Uri.fromFile(song.getFile())).setMediaMetadata(metadata).build();
                 song.setMediaItem(mediaItem);
                 mediaItems.add(mediaItem);
             }
             Playlist.mediaItems = mediaItems;
             loadMediaItemsComplete = true;
-            System.out.println("AAAAA loadMediaItems complete");
         });
         lastLoadMediaItemsThread.start();
     }
