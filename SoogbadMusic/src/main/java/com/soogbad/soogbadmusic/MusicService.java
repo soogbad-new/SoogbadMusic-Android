@@ -86,8 +86,11 @@ public class MusicService extends MediaLibraryService {
     }
 
     public void notifyChildrenChanged(String parentId) {
-        if(mediaSession != null)
-            mediaSession.notifyChildrenChanged(parentId, Playlist.getMediaItems() != null ? Playlist.getMediaItems().size() : 0, null);
+        if(mediaSession != null) {
+            int itemCount = Playlist.getMediaItems() != null ? Playlist.getMediaItems().size() : 0;
+            for(MediaSession.ControllerInfo controller : mediaSession.getConnectedControllers())
+                mediaSession.notifyChildrenChanged(controller, parentId, itemCount, null);
+        }
     }
 
     @OptIn(markerClass = UnstableApi.class)
