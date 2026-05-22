@@ -46,9 +46,7 @@ public class MusicService extends MediaBrowserServiceCompat {
 
     private MediaSession mediaSession = null;
     private final int NOTIFICATION_ID = 6969;
-    private boolean isForeground = false;
-    private boolean isLoadingSongs = false;
-    private boolean hadRealClient = false;
+    private boolean isForeground = false, isLoadingSongs = false, hadRealClient = false;
     public boolean getHadRealClient() { return hadRealClient; }
 
     @Override
