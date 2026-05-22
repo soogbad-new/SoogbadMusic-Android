@@ -35,6 +35,7 @@ java {
 dependencies {
     implementation libs.appcompat
     implementation libs.material
+    implementation libs.media
     implementation libs.media3.exoplayer
     implementation libs.media3.session
     implementation files('libs/jaudiotagger-android.jar')

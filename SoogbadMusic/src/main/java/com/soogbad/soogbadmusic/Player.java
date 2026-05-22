@@ -51,15 +51,15 @@ public class Player {
 
     public boolean getStopped() { return stopped; }
     
-    public double getCurrentTime() {
+    public long getCurrentTime() {
         if(stopped)
             return getSong().getDuration();
         else
-            return mediaPlayer.getCurrentPosition() / 1000.0;
+            return mediaPlayer.getCurrentPosition();
     }
-    public void setCurrentTime(double currentTime) {
+    public void setCurrentTime(long currentTime) {
         if(!stopped && currentTime >= 0 && currentTime < getSong().getDuration())
-            mediaPlayer.seekTo((int)Math.round(currentTime * 1000));
+            mediaPlayer.seekTo(currentTime);
     }
 
     public void play() {

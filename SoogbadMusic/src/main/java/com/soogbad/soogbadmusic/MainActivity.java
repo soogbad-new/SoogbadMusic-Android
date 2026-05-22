@@ -154,7 +154,8 @@ public class MainActivity extends AppCompatActivity {
         else if(PlaybackManager.getPlayer() != null) {
             progressBar.setVisibility(View.VISIBLE);
             if(progressBar.getWidth() <= progressBarBackground.getWidth()) {
-                int width = (int)Math.round(PlaybackManager.getPlayer().getCurrentTime() / PlaybackManager.getPlayer().getSong().getDuration() * progressBarBackground.getWidth());
+                double ratio = (double)PlaybackManager.getPlayer().getCurrentTime() / PlaybackManager.getPlayer().getSong().getDuration();
+                int width = (int)Math.round(ratio * progressBarBackground.getWidth());
                 progressBar.getLayoutParams().width = width == 0 ? 1 : width;
                 currentTimeTextView.setText(Utility.formatTime(PlaybackManager.getPlayer().getCurrentTime()));
                 durationTextView.setText(Utility.formatTime(PlaybackManager.getPlayer().getSong().getDuration()));
@@ -218,10 +219,11 @@ public class MainActivity extends AppCompatActivity {
         public void onClick(View view) {
             searchEditTextClearFocus();
             if(PlaybackManager.getPlayer() != null && !Playlist.isAccessingRefreshSongsProgress() && Playlist.getRefreshSongsProgress() == 0 && progressBarTouchLocation != -1) {
-                double time = (double) progressBarTouchLocation / progressBarBackground.getWidth() * PlaybackManager.getPlayer().getSong().getDuration();
+                double ratio = (double)progressBarTouchLocation / progressBarBackground.getWidth();
+                long time = (long)(ratio * PlaybackManager.getPlayer().getSong().getDuration());
                 progressBarTouchLocation = -1;
-                if(time > PlaybackManager.getPlayer().getSong().getDuration() - 1)
-                    time = PlaybackManager.getPlayer().getSong().getDuration() - 1;
+                if(time > PlaybackManager.getPlayer().getSong().getDuration() - 1000)
+                    time = PlaybackManager.getPlayer().getSong().getDuration() - 1000;
                 if(time < 0)
                     time = 0;
                 if(PlaybackManager.getPlayer().getStopped())
@@ -454,7 +456,7 @@ public class MainActivity extends AppCompatActivity {
         }
         Playlist.reset();
         if(MusicService.getInstance() != null) {
-            MusicService.getInstance().notifyChildrenChanged(MusicService.MEDIA_ROOT_ID); MusicService.getInstance().notifyChildrenChanged(MusicService.MEDIA_SUGGESTED_ID);
+            MusicService.getInstance().notifyChildrenChanged(MusicService.MEDIA_ROOT_ID);
             startService(new Intent(this, MusicService.class).setAction("com.app.soogbadmusic.ACTION_KILL"));
         }
         songList.reset();

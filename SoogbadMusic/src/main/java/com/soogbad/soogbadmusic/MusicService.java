@@ -26,12 +26,11 @@ import androidx.media.utils.MediaConstants;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public class MusicService extends MediaBrowserServiceCompat {
 
     @SuppressWarnings({"FieldCanBeLocal", "RedundantSuppression"})
-    public static final String NOTIFICATION_CHANNEL_ID = "soogbadmusic", MEDIA_ROOT_ID = "media_root", MEDIA_SUGGESTED_ID = "media_suggested";
+    public static final String NOTIFICATION_CHANNEL_ID = "soogbadmusic", MEDIA_ROOT_ID = "media_root";
 
     private static MusicService instance = null;
     public static MusicService getInstance() { return instance; }
@@ -108,20 +107,6 @@ public class MusicService extends MediaBrowserServiceCompat {
     private void onPlaylistMediaItemsLoaded(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
         if(parentId.equals(MEDIA_ROOT_ID))
             result.sendResult(Playlist.getMediaItems());
-        else if(parentId.equals(MEDIA_SUGGESTED_ID)) {
-            ArrayList<MediaBrowserCompat.MediaItem> forYou = new ArrayList<>();
-            ArrayList<MediaBrowserCompat.MediaItem> mediaItems = Playlist.getMediaItems();
-            if(mediaItems != null && mediaItems.size() >= 4) {
-                Random random = new Random();
-                for(int i = 1; i <= 4; i++) {
-                    MediaBrowserCompat.MediaItem suggestedItem = mediaItems.get(random.nextInt(mediaItems.size()));
-                    while(forYou.contains(suggestedItem))
-                        suggestedItem = mediaItems.get(new Random().nextInt(mediaItems.size()));
-                    forYou.add(suggestedItem);
-                }
-            }
-            result.sendResult(forYou);
-        }
         else
             result.sendResult(null);
     }

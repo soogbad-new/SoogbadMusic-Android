@@ -24,9 +24,10 @@ public class Utility {
         return (int)(dp * (displayMetrics.densityDpi / 160.0));
     }
 
-    public static String formatTime(double seconds) {
-        int mins = (int)(seconds / 60);
-        int secs = (int)(seconds % 60);
+    public static String formatTime(long milliseconds) {
+        long totalSeconds = milliseconds / 1000;
+        int mins = (int)(totalSeconds / 60);
+        int secs = (int)(totalSeconds % 60);
         return mins + ":" + (secs >= 10 ? "" : "0") + secs;
     }
 

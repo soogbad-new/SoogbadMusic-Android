@@ -168,7 +168,7 @@ public class PlaybackManager {
         return queue.contains(song);
     }
 
-    public static void setCurrentTime(double time) {
+    public static void setCurrentTime(long time) {
         getPlayer().setCurrentTime(time);
         if(MusicService.getInstance() != null)
             MusicService.getInstance().updateMediaSessionPlaybackState(getPaused(), player.getCurrentTime());
