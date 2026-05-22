@@ -8,6 +8,9 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.media.AudioDeviceCallback;
+import android.media.AudioDeviceInfo;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -133,7 +136,12 @@ public class MainActivity extends AppCompatActivity {
         }, 0, 20);
         PlaybackManager.addOnSongChangedListener(this::onSongChanged);
         PlaybackManager.addOnPausedValueChangedListener(this::onPausedValueChanged);
+        getSystemService(AudioManager.class).registerAudioDeviceCallback(audioDeviceCallback, new Handler(Looper.getMainLooper()));
     }
+    private final AudioDeviceCallback audioDeviceCallback = new AudioDeviceCallback() {
+        @Override public void onAudioDevicesAdded(AudioDeviceInfo[] addedDevices) { PlaybackManager.setPaused(true); }
+        @Override public void onAudioDevicesRemoved(AudioDeviceInfo[] removedDevices) { PlaybackManager.setPaused(true); }
+    };
 
     private void onTimerTick() {
         updateProgressBar();
@@ -461,6 +469,7 @@ public class MainActivity extends AppCompatActivity {
             MusicService.getInstance().notifyChildrenChanged(MusicService.MEDIA_ROOT_ID);
             startService(new Intent(this, MusicService.class).setAction("com.app.soogbadmusic.ACTION_KILL"));
         }
+        getSystemService(AudioManager.class).unregisterAudioDeviceCallback(audioDeviceCallback);
         songList.reset();
         if(timer != null) {
             timer.cancel(); timer.purge();
