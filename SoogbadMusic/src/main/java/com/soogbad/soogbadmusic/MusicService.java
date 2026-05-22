@@ -23,12 +23,11 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import androidx.media.utils.MediaConstants;
 
+import androidx.media3.session.MediaSession;
 import androidx.media3.common.ForwardingPlayer;
 import androidx.media3.common.MediaItem;
-import androidx.media3.common.Player;
 import androidx.media3.common.util.UnstableApi;
 import androidx.media3.exoplayer.ExoPlayer;
-import androidx.media3.session.MediaSession;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
@@ -206,13 +205,14 @@ public class MusicService extends MediaBrowserServiceCompat {
             NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, buildMediaNotification(PlaybackManager.getPlayer().getSong().getData()));
     }
 
-    public void updateMediaSessionPlaybackState(boolean pausedState, long currentTime) {
+    public void updateMediaSessionPlaybackState(boolean pausedState) {
         if(pausedState)
             bringServiceToBackground();
         else if(PlaybackManager.getPlayer() != null)
             bringServiceToForeground();
     }
 
+    @OptIn(markerClass = UnstableApi.class)
     private Notification buildMediaNotification(SongData data) {
         Intent prevActionIntent = new Intent(this, MusicService.class).setAction("com.app.soogbadmusic.ACTION_PREV");
         Intent nextActionIntent = new Intent(this, MusicService.class).setAction("com.app.soogbadmusic.ACTION_NEXT");
@@ -224,7 +224,7 @@ public class MusicService extends MediaBrowserServiceCompat {
         return builder.build();
     }
 
-    private class MusicSessionCallback implements MediaSession.Callback {
+    private static class MusicSessionCallback implements MediaSession.Callback {
         @OptIn(markerClass = UnstableApi.class)
         @NonNull @Override
         public ListenableFuture<MediaSession.MediaItemsWithStartPosition> onSetMediaItems(@NonNull MediaSession session, @NonNull MediaSession.ControllerInfo controller, @NonNull List<MediaItem> mediaItems, int startIndex, long startPositionMs) {

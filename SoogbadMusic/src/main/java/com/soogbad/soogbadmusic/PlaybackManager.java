@@ -60,7 +60,7 @@ public class PlaybackManager {
                 player.play();
         }
         if(MusicService.getInstance() != null)
-            MusicService.getInstance().updateMediaSessionPlaybackState(paused, player.getCurrentTime());
+            MusicService.getInstance().updateMediaSessionPlaybackState(paused);
         raiseOnPausedValueChanged();
     }
 
@@ -171,7 +171,7 @@ public class PlaybackManager {
     public static void setCurrentTime(long time) {
         getPlayer().setCurrentTime(time);
         if(MusicService.getInstance() != null)
-            MusicService.getInstance().updateMediaSessionPlaybackState(getPaused(), player.getCurrentTime());
+            MusicService.getInstance().updateMediaSessionPlaybackState(getPaused());
     }
 
     public static void reset() {
