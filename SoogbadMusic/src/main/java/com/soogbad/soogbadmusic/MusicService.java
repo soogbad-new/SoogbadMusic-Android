@@ -1,13 +1,14 @@
 package com.soogbad.soogbadmusic;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.OptIn;
 import androidx.media3.common.ForwardingPlayer;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.MediaMetadata;
+import androidx.media3.common.util.UnstableApi;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.session.LibraryResult;
 import androidx.media3.session.MediaLibraryService;
@@ -19,7 +20,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 public class MusicService extends MediaLibraryService {
 
@@ -87,7 +87,8 @@ public class MusicService extends MediaLibraryService {
             mediaSession.setPlayer(wrapPlayer(player));
         }
     }
-    @SuppressLint("UnsafeOptInUsageError")
+
+    @OptIn(markerClass = UnstableApi.class)
     private ForwardingPlayer wrapPlayer(ExoPlayer player) {
         return new ForwardingPlayer(player) {
             @Override public void play() { PlaybackManager.setPaused(false); }
@@ -104,6 +105,7 @@ public class MusicService extends MediaLibraryService {
 
     private class MusicLibrarySessionCallback implements MediaLibrarySession.Callback {
 
+        @OptIn(markerClass = UnstableApi.class)
         @NonNull @Override
         public ListenableFuture<LibraryResult<MediaItem>> onGetLibraryRoot(@NonNull MediaLibrarySession session, @NonNull MediaSession.ControllerInfo browser, @Nullable LibraryParams params) {
             if(params != null && (params.isRecent || params.isSuggested))
@@ -113,7 +115,6 @@ public class MusicService extends MediaLibraryService {
             return Futures.immediateFuture(LibraryResult.ofItem(rootItem, params));
         }
 
-        @SuppressLint("UnsafeOptInUsageError")
         @NonNull @Override
         public ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> onGetChildren(@NonNull MediaLibrarySession session, @NonNull MediaSession.ControllerInfo browser, @NonNull String parentId, int page, int pageSize, @Nullable LibraryParams params) {
             if(parentId.equals("none"))
@@ -136,7 +137,7 @@ public class MusicService extends MediaLibraryService {
             return Futures.immediateFuture(LibraryResult.ofItemList(ImmutableList.copyOf(results), params));
         }
 
-        @SuppressLint("UnsafeOptInUsageError")
+        @OptIn(markerClass = UnstableApi.class)
         @NonNull @Override
         public ListenableFuture<MediaSession.MediaItemsWithStartPosition> onSetMediaItems(@NonNull MediaSession session, @NonNull MediaSession.ControllerInfo controller, @NonNull java.util.List<MediaItem> mediaItems, int startIndex, long startPositionMs) {
             if(!mediaItems.isEmpty()) {

@@ -456,7 +456,7 @@ public class MainActivity extends AppCompatActivity {
         }
         Playlist.reset();
         if(MusicService.getInstance() != null) {
-            MusicService.getInstance().notifyChildrenChanged(MusicService.MEDIA_ROOT_ID); MusicService.getInstance().notifyChildrenChanged(MusicService.MEDIA_SUGGESTED_ID);
+            MusicService.getInstance().notifyChildrenChanged(MusicService.MEDIA_ROOT_ID);
             startService(new Intent(this, MusicService.class).setAction("com.app.soogbadmusic.ACTION_KILL"));
         }
         songList.reset();
