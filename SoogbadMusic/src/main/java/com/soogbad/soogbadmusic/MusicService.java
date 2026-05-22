@@ -35,6 +35,8 @@ public class MusicService extends MediaLibraryService {
     public void onCreate() {
         instance = this;
         super.onCreate();
+        if(MainActivity.getInstance() == null)
+            stopSelf();
     }
 
     @Override
@@ -75,17 +77,17 @@ public class MusicService extends MediaLibraryService {
             MainActivity.getInstance().finishAndRemoveTask();
     }
 
-    public void notifyChildrenChanged(String parentId) {
-        if(mediaSession != null)
-            mediaSession.notifyChildrenChanged(parentId, 0, null);
-    }
-
     public void setSessionPlayer(ExoPlayer player) {
         if(mediaSession != null) {
             if(mediaSession.getPlayer().getMediaItemCount() == 0)
                 mediaSession.getPlayer().release();
             mediaSession.setPlayer(wrapPlayer(player));
         }
+    }
+
+    public void notifyChildrenChanged(String parentId) {
+        if(mediaSession != null)
+            mediaSession.notifyChildrenChanged(parentId, Playlist.getMediaItems() != null ? Playlist.getMediaItems().size() : 0, null);
     }
 
     @OptIn(markerClass = UnstableApi.class)
@@ -95,7 +97,7 @@ public class MusicService extends MediaLibraryService {
             @Override public void pause() { PlaybackManager.setPaused(true); }
             @Override public void seekTo(long positionMs) { PlaybackManager.setCurrentTime(positionMs); }
             @Override public boolean isCommandAvailable(int command) { return command != COMMAND_GET_TIMELINE && (command == COMMAND_SET_SHUFFLE_MODE || command == COMMAND_SEEK_TO_NEXT || command == COMMAND_SEEK_TO_NEXT_MEDIA_ITEM || command == COMMAND_SEEK_TO_PREVIOUS || command == COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM || super.isCommandAvailable(command)); }
-            @NonNull @Override public Commands getAvailableCommands() { return super.getAvailableCommands().buildUpon().add(COMMAND_SET_SHUFFLE_MODE).add(COMMAND_SEEK_TO_NEXT).add(COMMAND_SEEK_TO_NEXT_MEDIA_ITEM).add(COMMAND_SEEK_TO_PREVIOUS).add(COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM).remove(COMMAND_GET_TIMELINE).build(); }
+            @NonNull @Override public Commands getAvailableCommands() { return super.getAvailableCommands().buildUpon().remove(COMMAND_GET_TIMELINE).add(COMMAND_SET_SHUFFLE_MODE).add(COMMAND_SEEK_TO_NEXT).add(COMMAND_SEEK_TO_NEXT_MEDIA_ITEM).add(COMMAND_SEEK_TO_PREVIOUS).add(COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM).build(); }
             @Override public void seekToNext() { PlaybackManager.nextSong(); }
             @Override public void seekToNextMediaItem() { PlaybackManager.nextSong(); }
             @Override public void seekToPrevious() { PlaybackManager.previousSong(); }
@@ -117,9 +119,9 @@ public class MusicService extends MediaLibraryService {
 
         @NonNull @Override
         public ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> onGetChildren(@NonNull MediaLibrarySession session, @NonNull MediaSession.ControllerInfo browser, @NonNull String parentId, int page, int pageSize, @Nullable LibraryParams params) {
-            if(parentId.equals("none"))
+            if(parentId.equals("none") || MainActivity.getInstance() == null)
                 return Futures.immediateFuture(LibraryResult.ofItemList(ImmutableList.of(), params));
-            if(Playlist.getMediaItems() == null || isLoadingSongs || MainActivity.getInstance() == null)
+            if(Playlist.getMediaItems() == null || isLoadingSongs)
                 return waitForPlaylistMediaItems(parentId, params);
             else
                 return Futures.immediateFuture(getChildrenResult(parentId, params));
