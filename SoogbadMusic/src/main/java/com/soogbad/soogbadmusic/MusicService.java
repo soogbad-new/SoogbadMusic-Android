@@ -148,6 +148,9 @@ public class MusicService extends MediaBrowserServiceCompat {
             @Override public void seekToNextMediaItem() { PlaybackManager.nextSong(); }
             @Override public void seekToPrevious() { PlaybackManager.previousSong(); }
             @Override public void seekToPreviousMediaItem() { PlaybackManager.previousSong(); }
+            @Override public void setMediaItems(@NonNull List<MediaItem> mediaItems) { }
+            @Override public void setMediaItems(@NonNull List<MediaItem> mediaItems, boolean resetPosition) { }
+            @Override public void setMediaItems(@NonNull List<MediaItem> mediaItems, int startIndex, long startPositionMs) { }
         };
     }
 
