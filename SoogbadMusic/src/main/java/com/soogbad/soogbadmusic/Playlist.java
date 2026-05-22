@@ -89,6 +89,7 @@ public class Playlist {
 
     /** @noinspection StatementWithEmptyBody*/
     public static void loadMediaItems() {
+        System.out.println("AAAAA loadMediaItems");
         if(lastLoadMediaItemsThread != null && lastLoadMediaItemsThread.isAlive())
             return;
         if(lastLoadMediaItemsThread != null) {
@@ -113,7 +114,7 @@ public class Playlist {
             }
             Playlist.mediaItems = mediaItems;
             loadMediaItemsComplete = true;
-            System.out.println("AAA loadMediaItems complete");
+            System.out.println("AAAAA loadMediaItems complete");
         });
         lastLoadMediaItemsThread.start();
     }

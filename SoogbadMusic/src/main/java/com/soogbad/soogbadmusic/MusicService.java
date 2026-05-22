@@ -30,12 +30,14 @@ public class MusicService extends MediaLibraryService {
 
     private MediaLibrarySession mediaSession = null;
     private boolean isLoadingSongs = false;
+    private boolean serviceHadRealClient = false;
+    public boolean getServiceHadRealClient() { return serviceHadRealClient; }
 
     @Override
     public void onCreate() {
         instance = this;
         super.onCreate();
-        System.out.println("AAA onCreate");
+        System.out.println("AAAAA onCreate");
         if(MainActivity.getInstance() == null)
             stopSelf();
     }
@@ -74,7 +76,7 @@ public class MusicService extends MediaLibraryService {
         }
         instance = null;
         super.onDestroy();
-        System.out.println("AAA onDestroy");
+        System.out.println("AAAAA onDestroy");
         if(MainActivity.getInstance() != null)
             MainActivity.getInstance().finishAndRemoveTask();
     }
@@ -88,11 +90,11 @@ public class MusicService extends MediaLibraryService {
     }
 
     public void notifyChildrenChanged(String parentId) {
-        System.out.println("AAA notifyChildrenChanged");
+        System.out.println("AAAAA notifyChildrenChanged");
         if(mediaSession != null) {
             int itemCount = Playlist.getMediaItems() != null ? Playlist.getMediaItems().size() : 0;
-            System.out.println("AAA notifyChildrenChanged itemCount: " + itemCount);
-            System.out.println("AAA notifyChildrenChanged controllers: " + mediaSession.getConnectedControllers().size());
+            System.out.println("AAAAA notifyChildrenChanged itemCount: " + itemCount);
+            System.out.println("AAAAA notifyChildrenChanged controllers: " + mediaSession.getConnectedControllers().size());
             for(MediaSession.ControllerInfo controller : mediaSession.getConnectedControllers())
                 mediaSession.notifyChildrenChanged(controller, parentId, itemCount, null);
         }
@@ -127,10 +129,12 @@ public class MusicService extends MediaLibraryService {
 
         @NonNull @Override
         public ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> onGetChildren(@NonNull MediaLibrarySession session, @NonNull MediaSession.ControllerInfo browser, @NonNull String parentId, int page, int pageSize, @Nullable LibraryParams params) {
-            System.out.println("AAA onGetChildren parentId: " + parentId);
+            System.out.println("AAAAA onGetChildren parentId: " + parentId);
+            if(!parentId.equals("none"))
+                serviceHadRealClient = true;
             if(parentId.equals("none") || MainActivity.getInstance() == null)
                 return Futures.immediateFuture(LibraryResult.ofItemList(ImmutableList.of(), params));
-            if(Playlist.getMediaItems() == null || isLoadingSongs)
+            if(isLoadingSongs || Playlist.getMediaItems().size() != Playlist.getSongs().size())
                 return waitForPlaylistMediaItems(parentId, params);
             else
                 return Futures.immediateFuture(getChildrenResult(parentId, params));
@@ -162,16 +166,20 @@ public class MusicService extends MediaLibraryService {
 
     /** @noinspection StatementWithEmptyBody*/
     private ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> waitForPlaylistMediaItems(@NonNull String parentId, @Nullable MediaLibraryService.LibraryParams params) {
-        if(!isLoadingSongs) {
-            Playlist.loadMediaItems();
-            isLoadingSongs = true;
-        }
+        loadPlaylistMediaItems();
         return Futures.submit(() -> {
             while(!Playlist.getLoadMediaItemsComplete()) { }
             Playlist.setLoadMediaItemsComplete(false);
             isLoadingSongs = false;
             return getChildrenResult(parentId, params);
         }, command -> new Thread(command).start());
+    }
+    public void loadPlaylistMediaItems() {
+        System.out.println("AAAAA loadPlaylistMediaItems");
+        if(!isLoadingSongs) {
+            Playlist.loadMediaItems();
+            isLoadingSongs = true;
+        }
     }
 
     private LibraryResult<ImmutableList<MediaItem>> getChildrenResult(@NonNull String parentId, @Nullable MediaLibraryService.LibraryParams params) {
