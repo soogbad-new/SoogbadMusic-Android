@@ -139,6 +139,8 @@ public class MainActivity extends AppCompatActivity {
         updateProgressBar();
         if(Playlist.getRefreshSongsComplete())
             onRefreshSongsComplete();
+        if(Playlist.getLoadMediaItemsComplete() && MusicService.getInstance() != null)
+            MusicService.getInstance().notifyChildrenChanged(MusicService.MEDIA_ROOT_ID);
     }
     private void updateProgressBar() {
         if(Playlist.isAccessingRefreshSongsProgress())
@@ -169,8 +171,8 @@ public class MainActivity extends AppCompatActivity {
     private void onRefreshSongsComplete() {
         Playlist.setRefreshSongsComplete(false);
         Playlist.setRefreshSongsProgress(0);
-        if(MusicService.getInstance() != null)
-            MusicService.getInstance().notifyChildrenChanged(MusicService.MEDIA_ROOT_ID);
+        if(MusicService.getInstance() != null && MusicService.getInstance().getHadRealClient())
+            MusicService.getInstance().loadPlaylistMediaItems();
         songList.changeSongList(Playlist.getSongs(), false);
         playPauseButton.setEnabled(true); previousButton.setEnabled(true); nextButton.setEnabled(true); searchEditText.setEnabled(true);
         searchEditTextClearFocus();

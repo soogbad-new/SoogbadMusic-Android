@@ -48,6 +48,8 @@ public class MusicService extends MediaBrowserServiceCompat {
     private final int NOTIFICATION_ID = 6969;
     private boolean isForeground = false;
     private boolean isLoadingSongs = false;
+    private boolean hadRealClient = false;
+    public boolean getHadRealClient() { return hadRealClient; }
 
     @Override
     public void onCreate() {
@@ -89,11 +91,13 @@ public class MusicService extends MediaBrowserServiceCompat {
 
     @Override
     public void onLoadChildren(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
+        if(!parentId.equals("none"))
+            hadRealClient = true;
         if(parentId.equals("none") || MainActivity.getInstance() == null) {
             result.sendResult(null);
             return;
         }
-        if(Playlist.getMediaItems() == null || isLoadingSongs) {
+        if(isLoadingSongs || Playlist.getMediaItems() == null || Playlist.getMediaItems().size() != Playlist.getSongs().size()) {
             result.detach();
             waitForPlaylistMediaItems(parentId, result);
         }
@@ -102,10 +106,7 @@ public class MusicService extends MediaBrowserServiceCompat {
     }
     /** @noinspection StatementWithEmptyBody*/
     private void waitForPlaylistMediaItems(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
-        if(!isLoadingSongs) {
-            Playlist.loadMediaItems();
-            isLoadingSongs = true;
-        }
+        loadPlaylistMediaItems();
         new Thread(() -> {
             while(!Playlist.getLoadMediaItemsComplete()) { }
             Playlist.setLoadMediaItemsComplete(false);
@@ -118,6 +119,12 @@ public class MusicService extends MediaBrowserServiceCompat {
             result.sendResult(Playlist.getMediaItems());
         else
             result.sendResult(null);
+    }
+    public void loadPlaylistMediaItems() {
+        if(!isLoadingSongs) {
+            Playlist.loadMediaItems();
+            isLoadingSongs = true;
+        }
     }
 
     @Override
