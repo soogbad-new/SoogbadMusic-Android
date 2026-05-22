@@ -46,7 +46,9 @@ public class Player {
     public Song getSong() {
         return song;
     }
-    
+
+    public ExoPlayer getExoPlayer() { return mediaPlayer; }
+
     public boolean getStopped() { return stopped; }
     
     public long getCurrentTime() {
