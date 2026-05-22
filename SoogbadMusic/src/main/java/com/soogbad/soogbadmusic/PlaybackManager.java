@@ -67,8 +67,6 @@ public class PlaybackManager {
 
     private static void createPlayer() {
         Player newPlayer = new Player(history.get(currentlyPlayedSongIndex));
-        if(MusicService.getInstance() != null)
-            MusicService.getInstance().setSessionPlayer(newPlayer.getExoPlayer());
         if(player != null)
             player.release();
         player = newPlayer;

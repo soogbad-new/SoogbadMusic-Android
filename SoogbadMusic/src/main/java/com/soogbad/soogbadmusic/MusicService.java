@@ -10,18 +10,19 @@ import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.v4.media.MediaBrowserCompat;
-import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.session.MediaControllerCompat;
-import android.support.v4.media.session.MediaSessionCompat;
-import android.support.v4.media.session.PlaybackStateCompat;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+
 import androidx.media.MediaBrowserServiceCompat;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaControllerCompat;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import androidx.media.utils.MediaConstants;
 
 import java.util.ArrayList;
@@ -72,10 +73,7 @@ public class MusicService extends MediaBrowserServiceCompat {
     public BrowserRoot onGetRoot(@NonNull String clientPackageName, int clientUid, @Nullable Bundle rootHints) {
         Bundle extras = new Bundle();
         extras.putBoolean(MediaConstants.BROWSER_SERVICE_EXTRAS_KEY_SEARCH_SUPPORTED, true); extras.putBoolean(MediaConstants.SESSION_EXTRAS_KEY_SLOT_RESERVATION_SKIP_TO_NEXT, true); extras.putBoolean(MediaConstants.SESSION_EXTRAS_KEY_SLOT_RESERVATION_SKIP_TO_PREV, true); extras.putBoolean(MediaConstants.TRANSPORT_CONTROLS_EXTRAS_KEY_SHUFFLE, true);
-        if(rootHints != null && rootHints.getBoolean(BrowserRoot.EXTRA_SUGGESTED, false))
-            return new BrowserRoot(MEDIA_SUGGESTED_ID, extras);
-        else
-            return new BrowserRoot(MEDIA_ROOT_ID, extras);
+        return new BrowserRoot(MEDIA_ROOT_ID, extras);
     }
 
     @Override
@@ -166,7 +164,7 @@ public class MusicService extends MediaBrowserServiceCompat {
     }
 
     public void updateMediaSessionData() { mediaSessionHandler.updateMediaSessionData(); }
-    public void updateMediaSessionPlaybackState(boolean pausedState, double currentTime) { mediaSessionHandler.updateMediaSessionPlaybackState(pausedState, currentTime); }
+    public void updateMediaSessionPlaybackState(boolean pausedState, long currentTime) { mediaSessionHandler.updateMediaSessionPlaybackState(pausedState, currentTime); }
 
     public class MediaSessionHandler {
 
@@ -206,14 +204,14 @@ public class MusicService extends MediaBrowserServiceCompat {
 
         public void updateMediaSessionData() {
             SongData data = PlaybackManager.getPlayer().getSong().getData();
-            mediaSession.setMetadata(new MediaMetadataCompat.Builder().putLong(MediaMetadataCompat.METADATA_KEY_DURATION, (long)(PlaybackManager.getPlayer().getSong().getDuration() * 1000)).putString(MediaMetadataCompat.METADATA_KEY_TITLE, data.Title).putString(MediaMetadataCompat.METADATA_KEY_ARTIST, data.Artist).putString(MediaMetadataCompat.METADATA_KEY_ALBUM, data.Album).putLong(MediaMetadataCompat.METADATA_KEY_YEAR, data.Year).putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, data.AlbumCover).build());
-            mediaSession.setPlaybackState(new PlaybackStateCompat.Builder().setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_PLAY_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS | PlaybackStateCompat.ACTION_SKIP_TO_NEXT).setState(PlaybackManager.getPaused() ? PlaybackStateCompat.STATE_PAUSED : PlaybackStateCompat.STATE_PLAYING, (long)(1000 * PlaybackManager.getPlayer().getCurrentTime()), PlaybackManager.getPaused() ? 0 : 1).build());
+            mediaSession.setMetadata(new MediaMetadataCompat.Builder().putLong(MediaMetadataCompat.METADATA_KEY_DURATION, PlaybackManager.getPlayer().getSong().getDuration()).putString(MediaMetadataCompat.METADATA_KEY_TITLE, data.Title).putString(MediaMetadataCompat.METADATA_KEY_ARTIST, data.Artist).putString(MediaMetadataCompat.METADATA_KEY_ALBUM, data.Album).putLong(MediaMetadataCompat.METADATA_KEY_YEAR, data.Year).putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, data.AlbumCover).build());
+            mediaSession.setPlaybackState(new PlaybackStateCompat.Builder().setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_PLAY_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS | PlaybackStateCompat.ACTION_SKIP_TO_NEXT).setState(PlaybackManager.getPaused() ? PlaybackStateCompat.STATE_PAUSED : PlaybackStateCompat.STATE_PLAYING, PlaybackManager.getPlayer().getCurrentTime(), PlaybackManager.getPaused() ? 0 : 1).build());
             if(ActivityCompat.checkSelfPermission(parentInstance, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
                 NotificationManagerCompat.from(parentInstance).notify(NOTIFICATION_ID, buildMediaNotification(data));
         }
 
-        public void updateMediaSessionPlaybackState(boolean pausedState, double currentTime) {
-            mediaSession.setPlaybackState(new PlaybackStateCompat.Builder().setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_PLAY_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS | PlaybackStateCompat.ACTION_SKIP_TO_NEXT).setState(pausedState ? PlaybackStateCompat.STATE_PAUSED : PlaybackStateCompat.STATE_PLAYING, (long)(1000 * currentTime), pausedState ? 0 : 1).build());
+        public void updateMediaSessionPlaybackState(boolean pausedState, long currentTime) {
+            mediaSession.setPlaybackState(new PlaybackStateCompat.Builder().setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_PLAY_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS | PlaybackStateCompat.ACTION_SKIP_TO_NEXT).setState(pausedState ? PlaybackStateCompat.STATE_PAUSED : PlaybackStateCompat.STATE_PLAYING, currentTime, pausedState ? 0 : 1).build());
             if(pausedState)
                 bringServiceToBackground();
             else if(PlaybackManager.getPlayer() != null)

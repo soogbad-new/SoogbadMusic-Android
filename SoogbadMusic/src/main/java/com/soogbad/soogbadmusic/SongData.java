@@ -2,7 +2,8 @@ package com.soogbad.soogbadmusic;
 
 import android.graphics.Bitmap;
 
-import androidx.media3.common.MediaMetadata;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaMetadataCompat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,11 +29,13 @@ public class SongData {
         else
             return contains(removeSpecialCharacters(Artist.toLowerCase()), realKey) || contains(removeSpecialCharacters(Title.toLowerCase()), realKey) || contains(removeSpecialCharacters(Album.toLowerCase()), realKey) || contains(removeSpecialCharacters(Integer.toString(Year).toLowerCase()), realKey) || contains(removeSpecialCharacters(Genre.toLowerCase()), realKey) || contains(removeSpecialCharacters(Lyrics.toLowerCase()), realKey);
     }
-    public static boolean contains(MediaMetadata metadata, String key) {
+    public static boolean contains(MediaBrowserCompat.MediaItem mediaItem, String key) {
         String realKey = removeSpecialCharacters(key.toLowerCase());
-        String title = metadata.title != null ? removeSpecialCharacters(metadata.title.toString().toLowerCase()) : "";
-        String artist = metadata.artist != null ? removeSpecialCharacters(metadata.artist.toString().toLowerCase()) : "";
-        return contains(artist, realKey) || contains(title, realKey);
+        if(mediaItem.getDescription().getExtras() == null)
+            return false;
+        String artist = mediaItem.getDescription().getExtras().getString(MediaMetadataCompat.METADATA_KEY_ARTIST);
+        String title = mediaItem.getDescription().getExtras().getString(MediaMetadataCompat.METADATA_KEY_TITLE);
+        return (artist != null && contains(removeSpecialCharacters(artist.toLowerCase()), realKey)) || (title != null && contains(removeSpecialCharacters(title.toLowerCase()), realKey));
     }
     private static final ArrayList<Byte> CHARACTERS = new ArrayList<>(Arrays.asList(Character.DASH_PUNCTUATION, Character.START_PUNCTUATION, Character.END_PUNCTUATION, Character.CONNECTOR_PUNCTUATION, Character.OTHER_PUNCTUATION, Character.INITIAL_QUOTE_PUNCTUATION, Character.FINAL_QUOTE_PUNCTUATION, Character.MATH_SYMBOL, Character.CURRENCY_SYMBOL, Character.MODIFIER_SYMBOL, Character.OTHER_SYMBOL));
     private static String removeSpecialCharacters(String str)
