@@ -35,6 +35,7 @@ public class MusicService extends MediaLibraryService {
     public void onCreate() {
         instance = this;
         super.onCreate();
+        System.out.println("AAA onCreate");
         if(MainActivity.getInstance() == null)
             stopSelf();
     }
@@ -73,6 +74,7 @@ public class MusicService extends MediaLibraryService {
         }
         instance = null;
         super.onDestroy();
+        System.out.println("AAA onDestroy");
         if(MainActivity.getInstance() != null)
             MainActivity.getInstance().finishAndRemoveTask();
     }
@@ -86,8 +88,11 @@ public class MusicService extends MediaLibraryService {
     }
 
     public void notifyChildrenChanged(String parentId) {
+        System.out.println("AAA notifyChildrenChanged");
         if(mediaSession != null) {
             int itemCount = Playlist.getMediaItems() != null ? Playlist.getMediaItems().size() : 0;
+            System.out.println("AAA notifyChildrenChanged itemCount: " + itemCount);
+            System.out.println("AAA notifyChildrenChanged controllers: " + mediaSession.getConnectedControllers().size());
             for(MediaSession.ControllerInfo controller : mediaSession.getConnectedControllers())
                 mediaSession.notifyChildrenChanged(controller, parentId, itemCount, null);
         }
@@ -122,6 +127,7 @@ public class MusicService extends MediaLibraryService {
 
         @NonNull @Override
         public ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> onGetChildren(@NonNull MediaLibrarySession session, @NonNull MediaSession.ControllerInfo browser, @NonNull String parentId, int page, int pageSize, @Nullable LibraryParams params) {
+            System.out.println("AAA onGetChildren parentId: " + parentId);
             if(parentId.equals("none") || MainActivity.getInstance() == null)
                 return Futures.immediateFuture(LibraryResult.ofItemList(ImmutableList.of(), params));
             if(Playlist.getMediaItems() == null || isLoadingSongs)

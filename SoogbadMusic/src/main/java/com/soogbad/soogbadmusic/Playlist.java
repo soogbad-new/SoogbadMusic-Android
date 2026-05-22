@@ -113,6 +113,7 @@ public class Playlist {
             }
             Playlist.mediaItems = mediaItems;
             loadMediaItemsComplete = true;
+            System.out.println("AAA loadMediaItems complete");
         });
         lastLoadMediaItemsThread.start();
     }
