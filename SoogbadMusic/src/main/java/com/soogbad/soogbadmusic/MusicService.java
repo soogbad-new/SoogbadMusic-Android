@@ -201,7 +201,6 @@ public class MusicService extends MediaLibraryService {
             return Futures.immediateFuture(LibraryResult.ofVoid());
         }
 
-
         @OptIn(markerClass = UnstableApi.class)
         @NonNull @Override
         public ListenableFuture<LibraryResult<MediaItem>> onGetLibraryRoot(@NonNull MediaLibrarySession session, @NonNull MediaSession.ControllerInfo browser, @Nullable LibraryParams params) {
