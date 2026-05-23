@@ -378,7 +378,7 @@ public class MainActivity extends AppCompatActivity {
         if(insets.isVisible(WindowInsetsCompat.Type.ime())) {
             MaterialShapeDrawable searchbarDrawable = new MaterialShapeDrawable(new ShapeAppearanceModel().toBuilder().setAllCorners(CornerFamily.ROUNDED, view.getWidth() / 2f).build());
             searchbarDrawable.setFillColor(ContextCompat.getColorStateList(this, R.color.semiTransparentSearchbar));
-            searchbarDrawable.setStroke(5.0f, ContextCompat.getColor(this, R.color.semiTransparentSelected));
+            searchbarDrawable.setStroke(5.0f, ContextCompat.getColor(this, R.color.semiTransparentSearchbarBorder));
             searchEditText.setBackground(searchbarDrawable);
             ConstraintSet constraintSet = new ConstraintSet();
             constraintSet.clone(constraintLayout);
