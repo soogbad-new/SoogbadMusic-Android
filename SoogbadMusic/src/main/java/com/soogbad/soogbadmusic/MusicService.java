@@ -47,7 +47,6 @@ public class MusicService extends MediaLibraryService {
     private boolean isForeground = false, isLoadingSongs = false, hadRealClient = false;
     public boolean getHadRealClient() { return hadRealClient; }
 
-    @OptIn(markerClass = UnstableApi.class)
     @Override
     public void onCreate() {
         instance = this;
@@ -56,7 +55,6 @@ public class MusicService extends MediaLibraryService {
             killService();
     }
 
-    @OptIn(markerClass = UnstableApi.class)
     @Override
     public MediaLibrarySession onGetSession(@NonNull MediaSession.ControllerInfo controllerInfo) {
         if(mediaSession == null)
@@ -64,7 +62,6 @@ public class MusicService extends MediaLibraryService {
         return mediaSession;
     }
 
-    @OptIn(markerClass = UnstableApi.class)
     private void createMediaSession() {
         getSystemService(NotificationManager.class).createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL_ID, "SoogbadMusic", NotificationManager.IMPORTANCE_DEFAULT));
         ExoPlayer player = new ExoPlayer.Builder(this).build();
@@ -88,7 +85,6 @@ public class MusicService extends MediaLibraryService {
         };
     }
 
-    @OptIn(markerClass = UnstableApi.class)
     public void setSessionPlayer(ExoPlayer player) {
         if(mediaSession != null) {
             if(mediaSession.getPlayer().getMediaItemCount() == 0)
@@ -186,7 +182,8 @@ public class MusicService extends MediaLibraryService {
 
     public void notifyMediaItemsChanged() {
         if(mediaSession != null)
-            mediaSession.notifyChildrenChanged(MEDIA_ROOT_ID, Playlist.getSongs().size(), null);
+            for(MediaSession.ControllerInfo controller : mediaSession.getConnectedControllers())
+                mediaSession.notifyChildrenChanged(controller, MEDIA_ROOT_ID, Playlist.getSongs().size(), null);
     }
 
     private class MusicLibrarySessionCallback implements MediaLibrarySession.Callback {
@@ -200,7 +197,6 @@ public class MusicService extends MediaLibraryService {
             return Futures.immediateFuture(LibraryResult.ofItem(rootItem, params));
         }
 
-        @OptIn(markerClass = UnstableApi.class)
         @NonNull @Override
         public ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> onGetChildren(@NonNull MediaLibrarySession session, @NonNull MediaSession.ControllerInfo browser, @NonNull String parentId, int page, int pageSize, @Nullable LibraryParams params) {
             if(!parentId.equals("none")) {
@@ -224,7 +220,6 @@ public class MusicService extends MediaLibraryService {
             }, command -> new Thread(command).start());
         }
 
-        /*@OptIn(markerClass = UnstableApi.class)
         @NonNull @Override
         public ListenableFuture<LibraryResult<Void>> onSearch(@NonNull MediaLibrarySession session, @NonNull MediaSession.ControllerInfo browser, @NonNull String query, @Nullable LibraryParams params) {
             int size = 0;
@@ -233,9 +228,8 @@ public class MusicService extends MediaLibraryService {
                     size++;
             session.notifySearchResultChanged(browser, query, size, params);
             return Futures.immediateFuture(LibraryResult.ofVoid(params));
-        }*/
+        }
 
-        @OptIn(markerClass = UnstableApi.class)
         @NonNull @Override
         public ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> onGetSearchResult(@NonNull MediaLibrarySession session, @NonNull MediaSession.ControllerInfo browser, @NonNull String query, int page, int pageSize, @Nullable LibraryParams params) {
             ArrayList<MediaItem> results = new ArrayList<>();
