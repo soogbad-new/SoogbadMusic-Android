@@ -43,9 +43,11 @@ public class MusicService extends MediaLibraryService {
     public static MusicService getInstance() { return instance; }
 
     private MediaLibrarySession mediaSession = null;
+    private final ArrayList<MediaSession.ControllerInfo> subscribers = new ArrayList<>();
+    public ArrayList<MediaSession.ControllerInfo> getSubscribers() { return subscribers; }
+
     private final int NOTIFICATION_ID = 6969;
-    private boolean isForeground = false, isLoadingSongs = false, hadRealClient = false;
-    public boolean getHadRealClient() { return hadRealClient; }
+    private boolean isForeground = false, isLoadingSongs = false;
 
     @Override
     public void onCreate() {
@@ -182,11 +184,23 @@ public class MusicService extends MediaLibraryService {
 
     public void notifyMediaItemsChanged() {
         if(mediaSession != null)
-            for(MediaSession.ControllerInfo controller : mediaSession.getConnectedControllers())
-                mediaSession.notifyChildrenChanged(controller, MEDIA_ROOT_ID, Playlist.getSongs().size(), null);
+            for(MediaSession.ControllerInfo browser : subscribers)
+                mediaSession.notifyChildrenChanged(browser, MEDIA_ROOT_ID, Playlist.getSongs().size(), null);
     }
 
     private class MusicLibrarySessionCallback implements MediaLibrarySession.Callback {
+
+        @NonNull @Override
+        public ListenableFuture<LibraryResult<Void>> onSubscribe(@NonNull MediaLibrarySession session, @NonNull MediaSession.ControllerInfo browser, @NonNull String parentId, @Nullable LibraryParams params) {
+            subscribers.add(browser);
+            return Futures.immediateFuture(LibraryResult.ofVoid());
+        }
+        @NonNull @Override
+        public ListenableFuture<LibraryResult<Void>> onUnsubscribe(@NonNull MediaLibrarySession session, @NonNull MediaSession.ControllerInfo browser, @NonNull String parentId) {
+            subscribers.remove(browser);
+            return Futures.immediateFuture(LibraryResult.ofVoid());
+        }
+
 
         @OptIn(markerClass = UnstableApi.class)
         @NonNull @Override
@@ -199,16 +213,14 @@ public class MusicService extends MediaLibraryService {
 
         @NonNull @Override
         public ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> onGetChildren(@NonNull MediaLibrarySession session, @NonNull MediaSession.ControllerInfo browser, @NonNull String parentId, int page, int pageSize, @Nullable LibraryParams params) {
-            if(!parentId.equals("none")) {
-                hadRealClient = true;
-                if(MainActivity.getInstance() == null)
-                    return Futures.immediateFuture(LibraryResult.ofItemList(ImmutableList.of(), params));
-                if(!isLoadingSongs && Playlist.getMediaItems() != null && Playlist.getMediaItems().size() == Playlist.getSongs().size())
-                    return Futures.immediateFuture(LibraryResult.ofItemList(Playlist.getMediaItems(), params));
+            if(parentId.equals("none") || MainActivity.getInstance() == null)
+                return Futures.immediateFuture(LibraryResult.ofItemList(ImmutableList.of(), params));
+            else if(!isLoadingSongs && Playlist.getMediaItems() != null && Playlist.getMediaItems().size() == Playlist.getSongs().size())
+                return Futures.immediateFuture(LibraryResult.ofItemList(Playlist.getMediaItems(), params));
+            else {
                 loadPlaylistMediaItems();
                 return waitForPlaylistMediaItems(params);
             }
-            return Futures.immediateFuture(LibraryResult.ofItemList(ImmutableList.of(), params));
         }
         /** @noinspection StatementWithEmptyBody*/
         private ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> waitForPlaylistMediaItems(@Nullable LibraryParams params) {

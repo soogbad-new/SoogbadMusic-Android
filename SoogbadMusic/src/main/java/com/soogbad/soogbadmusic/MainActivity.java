@@ -177,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
     private void onRefreshSongsComplete() {
         Playlist.setRefreshSongsComplete(false);
         Playlist.setRefreshSongsProgress(0);
-        if(MusicService.getInstance() != null && MusicService.getInstance().getHadRealClient())
+        if(MusicService.getInstance() != null && !MusicService.getInstance().getSubscribers().isEmpty())
             MusicService.getInstance().loadPlaylistMediaItems();
         songList.changeSongList(Playlist.getSongs(), false);
         playPauseButton.setEnabled(true); previousButton.setEnabled(true); nextButton.setEnabled(true); searchEditText.setEnabled(true);
