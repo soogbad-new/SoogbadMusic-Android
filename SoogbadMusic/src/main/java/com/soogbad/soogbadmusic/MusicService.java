@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
@@ -24,6 +25,7 @@ import androidx.media3.session.LibraryResult;
 import androidx.media3.session.MediaLibraryService;
 import androidx.media3.session.MediaSession;
 import androidx.media3.session.MediaStyleNotificationHelper;
+import androidx.media3.session.SessionError;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
@@ -134,6 +136,7 @@ public class MusicService extends MediaLibraryService {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        super.onStartCommand(intent, flags, startId);
         if (intent != null && intent.getAction() != null) {
             if(intent.getAction().equals("com.app.soogbadmusic.ACTION_PREV"))
                 PlaybackManager.previousSong();
@@ -202,14 +205,14 @@ public class MusicService extends MediaLibraryService {
                     return Futures.immediateFuture(LibraryResult.ofItemList(ImmutableList.copyOf(Playlist.getMediaItems()), params));
                 else {
                     loadPlaylistMediaItems();
-                    return waitForPlaylistMediaItems(parentId, params);
+                    return waitForPlaylistMediaItems(params);
                 }
             }
             else
                 return Futures.immediateFuture(LibraryResult.ofItemList(ImmutableList.of(), params));
         }
         /** @noinspection StatementWithEmptyBody*/
-        private ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> waitForPlaylistMediaItems(@NonNull String parentId, @Nullable MediaLibraryService.LibraryParams params) {
+        private ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> waitForPlaylistMediaItems(@Nullable MediaLibraryService.LibraryParams params) {
             return Futures.submit(() -> {
                 while(!Playlist.getLoadMediaItemsComplete()) { }
                 Playlist.setLoadMediaItemsComplete(false);
