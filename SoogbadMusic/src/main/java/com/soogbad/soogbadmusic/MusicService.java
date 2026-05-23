@@ -54,8 +54,6 @@ public class MusicService extends MediaLibraryService {
         super.onCreate();
         if(MainActivity.getInstance() == null)
             killService();
-        else
-            createMediaSession();
     }
 
     @Override
