@@ -58,6 +58,12 @@ public class MusicService extends MediaLibraryService {
             createMediaSession();
     }
 
+    @Override
+    public MediaLibrarySession onGetSession(@NonNull MediaSession.ControllerInfo controllerInfo) {
+        if(mediaSession == null)
+            createMediaSession();
+        return mediaSession;
+    }
     private void createMediaSession() {
         getSystemService(NotificationManager.class).createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL_ID, "SoogbadMusic", NotificationManager.IMPORTANCE_DEFAULT));
         ExoPlayer player = new ExoPlayer.Builder(this).build();
@@ -89,9 +95,6 @@ public class MusicService extends MediaLibraryService {
             mediaSession.setPlayer(wrapPlayer(player));
         }
     }
-
-    @Override
-    public MediaLibrarySession onGetSession(@NonNull MediaSession.ControllerInfo controllerInfo) { return mediaSession; }
 
     @OptIn(markerClass = UnstableApi.class)
     @Override
@@ -128,6 +131,7 @@ public class MusicService extends MediaLibraryService {
             NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, buildMediaNotification(PlaybackManager.getPlayer().getSong().getData()));
     }
     public void updateMediaSessionPlaybackState(boolean pausedState) {
+        if(mediaSession == null) return;
         if(pausedState)
             bringServiceToBackground();
         else if(PlaybackManager.getPlayer() != null)

@@ -125,9 +125,7 @@ public class MainActivity extends AppCompatActivity {
                 mediaBrowser = mediaBrowserFuture.get();
                 mediaBrowser.subscribe("none", new MediaLibraryService.LibraryParams.Builder().build());
             }
-            catch(ExecutionException | InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            catch(ExecutionException | InterruptedException e) { throw new RuntimeException(e); }
         }, MoreExecutors.directExecutor());
         timer = new Timer();
         timer.schedule(new TimerTask() {
