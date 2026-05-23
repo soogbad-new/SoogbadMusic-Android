@@ -146,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
         if(Playlist.getRefreshSongsComplete())
             onRefreshSongsComplete();
         if(Playlist.getLoadMediaItemsComplete() && MusicService.getInstance() != null)
-            MusicService.getInstance().notifyChildrenChanged(MusicService.MEDIA_ROOT_ID);
+            MusicService.getInstance().notifyMediaItemsChanged();
     }
     private void updateProgressBar() {
         if(Playlist.isAccessingRefreshSongsProgress())
@@ -464,7 +464,7 @@ public class MainActivity extends AppCompatActivity {
         }
         Playlist.reset();
         if(MusicService.getInstance() != null) {
-            MusicService.getInstance().notifyChildrenChanged(MusicService.MEDIA_ROOT_ID);
+            MusicService.getInstance().notifyMediaItemsChanged();
             startService(new Intent(this, MusicService.class).setAction("com.app.soogbadmusic.ACTION_KILL"));
         }
         getSystemService(AudioManager.class).unregisterAudioDeviceCallback(audioDeviceCallback);

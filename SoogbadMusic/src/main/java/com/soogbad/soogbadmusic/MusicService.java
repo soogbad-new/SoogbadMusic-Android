@@ -8,8 +8,6 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
-import android.os.Bundle;
-import android.os.IBinder;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -18,18 +16,16 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
-import android.support.v4.media.MediaBrowserCompat;
-import android.support.v4.media.session.MediaSessionCompat;
-
-import androidx.media.MediaBrowserServiceCompat;
-import androidx.media.utils.MediaConstants;
-
 import androidx.media3.common.ForwardingPlayer;
 import androidx.media3.common.MediaItem;
+import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.util.UnstableApi;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.session.LibraryResult;
+import androidx.media3.session.MediaLibraryService;
 import androidx.media3.session.MediaSession;
 import androidx.media3.session.MediaStyleNotificationHelper;
+import androidx.media3.session.SessionError;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
@@ -38,9 +34,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MusicService extends MediaBrowserServiceCompat {
-
-    // the big problem: notifyChildrenChanged doesn't exist in the new service, and it seems calling it on the session instead does not do anything
+public class MusicService extends MediaLibraryService {
 
     @SuppressWarnings({"FieldCanBeLocal", "RedundantSuppression"})
     public static final String NOTIFICATION_CHANNEL_ID = "soogbadmusic", MEDIA_ROOT_ID = "media_root";
@@ -48,7 +42,7 @@ public class MusicService extends MediaBrowserServiceCompat {
     private static MusicService instance = null;
     public static MusicService getInstance() { return instance; }
 
-    private MediaSession mediaSession = null;
+    private MediaLibrarySession mediaSession = null;
     private final int NOTIFICATION_ID = 6969;
     private boolean isForeground = false, isLoadingSongs = false, hadRealClient = false;
     public boolean getHadRealClient() { return hadRealClient; }
@@ -62,25 +56,19 @@ public class MusicService extends MediaBrowserServiceCompat {
             killService();
     }
 
+    @OptIn(markerClass = UnstableApi.class)
     @Override
-    public IBinder onBind(Intent intent) {
+    public MediaLibrarySession onGetSession(@NonNull MediaSession.ControllerInfo controllerInfo) {
         if(mediaSession == null)
-            createMediaSession(); // call in onGetSession instead
-        return super.onBind(intent);
-    }
-
-    @Override
-    public boolean onUnbind(Intent intent) {
-        releaseMediaSession();
-        return super.onUnbind(intent);
+            createMediaSession();
+        return mediaSession;
     }
 
     @OptIn(markerClass = UnstableApi.class)
     private void createMediaSession() {
         getSystemService(NotificationManager.class).createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL_ID, "SoogbadMusic", NotificationManager.IMPORTANCE_DEFAULT));
         ExoPlayer player = new ExoPlayer.Builder(this).build();
-        mediaSession = new MediaSession.Builder(this, wrapPlayer(player)).setId("SoogbadMusic").setCallback(new MusicSessionCallback()).build();
-        setSessionToken(MediaSessionCompat.Token.fromToken(mediaSession.getPlatformToken()));
+        mediaSession = new MediaLibrarySession.Builder(this, wrapPlayer(player), new MusicLibrarySessionCallback()).setId("SoogbadMusic").build();
     }
     @OptIn(markerClass = UnstableApi.class)
     private ForwardingPlayer wrapPlayer(ExoPlayer player) {
@@ -109,7 +97,8 @@ public class MusicService extends MediaBrowserServiceCompat {
         }
     }
 
-    //@Override public void onUpdateNotification(@NonNull MediaSession session, boolean startInForegroundRequired) { }
+    @Override
+    public void onUpdateNotification(@NonNull MediaSession session, boolean startInForegroundRequired) { }
 
     @OptIn(markerClass = UnstableApi.class)
     private Notification buildMediaNotification(SongData data) {
@@ -195,56 +184,66 @@ public class MusicService extends MediaBrowserServiceCompat {
         }
     }
 
-    @Nullable @Override
-    public  BrowserRoot onGetRoot(@NonNull String clientPackageName, int clientUid, @Nullable Bundle rootHints) {
-        /*if(params != null && (params.isRecent || params.isSuggested))
-            return Futures.immediateFuture(LibraryResult.ofError(SessionError.ERROR_NOT_SUPPORTED));
-        else {
+    public void notifyMediaItemsChanged() {
+        if(mediaSession != null)
+            mediaSession.notifyChildrenChanged(MEDIA_ROOT_ID, Playlist.getSongs().size(), null);
+    }
+
+    private class MusicLibrarySessionCallback implements MediaLibrarySession.Callback {
+
+        @OptIn(markerClass = UnstableApi.class)
+        @NonNull @Override
+        public ListenableFuture<LibraryResult<MediaItem>> onGetLibraryRoot(@NonNull MediaLibrarySession session, @NonNull MediaSession.ControllerInfo browser, @Nullable LibraryParams params) {
+            if(params != null && (params.isRecent || params.isSuggested))
+                return Futures.immediateFuture(LibraryResult.ofError(SessionError.ERROR_NOT_SUPPORTED));
             MediaItem rootItem = new MediaItem.Builder().setMediaId(MEDIA_ROOT_ID).setMediaMetadata(new MediaMetadata.Builder().setIsPlayable(false).setIsBrowsable(true).setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_MIXED).build()).build();
             return Futures.immediateFuture(LibraryResult.ofItem(rootItem, params));
-        }*/
-        Bundle extras = new Bundle();
-        extras.putBoolean(MediaConstants.BROWSER_SERVICE_EXTRAS_KEY_SEARCH_SUPPORTED, true); extras.putBoolean(MediaConstants.SESSION_EXTRAS_KEY_SLOT_RESERVATION_SKIP_TO_NEXT, true); extras.putBoolean(MediaConstants.SESSION_EXTRAS_KEY_SLOT_RESERVATION_SKIP_TO_PREV, true); extras.putBoolean(MediaConstants.TRANSPORT_CONTROLS_EXTRAS_KEY_SHUFFLE, true);
-        return new BrowserRoot(MEDIA_ROOT_ID, extras);
-    }
-
-    @Override
-    public void onLoadChildren(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
-        if(!parentId.equals("none")) {
-            hadRealClient = true;
-            if(MainActivity.getInstance() == null)
-                result.sendResult(null);
-            else if(!isLoadingSongs && Playlist.getMediaItems() != null && Playlist.getMediaItems().size() == Playlist.getSongs().size())
-                result.sendResult(Playlist.getMediaItems());
-            else {
-                loadPlaylistMediaItems();
-                result.detach();
-                waitForPlaylistMediaItems(result);
-            }
         }
-        else
-            result.sendResult(null);
-    }
-    /** @noinspection StatementWithEmptyBody*/
-    private void waitForPlaylistMediaItems(@NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
-        new Thread(() -> { //return Futures.submit(() -> {
-            while(!Playlist.getLoadMediaItemsComplete()) { }
-            Playlist.setLoadMediaItemsComplete(false);
-            isLoadingSongs = false;
-            result.sendResult(Playlist.getMediaItems());
-        }).start(); //}, command -> new Thread(command).start());
-    }
 
-    @Override
-    public void onSearch(@NonNull String query, Bundle extras, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
-        ArrayList<MediaBrowserCompat.MediaItem> results = new ArrayList<>();
-        for(Song song : Playlist.getSongs())
-            if(song.getData().contains(query, false) && song.getMediaItem() != null)
-                results.add(song.getMediaItem());
-        result.sendResult(results);
-    }
+        @OptIn(markerClass = UnstableApi.class)
+        @NonNull @Override
+        public ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> onGetChildren(@NonNull MediaLibrarySession session, @NonNull MediaSession.ControllerInfo browser, @NonNull String parentId, int page, int pageSize, @Nullable LibraryParams params) {
+            if(!parentId.equals("none")) {
+                hadRealClient = true;
+                if(MainActivity.getInstance() == null)
+                    return Futures.immediateFuture(LibraryResult.ofItemList(ImmutableList.of(), params));
+                if(!isLoadingSongs && Playlist.getMediaItems() != null && Playlist.getMediaItems().size() == Playlist.getSongs().size())
+                    return Futures.immediateFuture(LibraryResult.ofItemList(Playlist.getMediaItems(), params));
+                loadPlaylistMediaItems();
+                return waitForPlaylistMediaItems(params);
+            }
+            return Futures.immediateFuture(LibraryResult.ofItemList(ImmutableList.of(), params));
+        }
+        /** @noinspection StatementWithEmptyBody*/
+        private ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> waitForPlaylistMediaItems(@Nullable LibraryParams params) {
+            return Futures.submit(() -> {
+                while(!Playlist.getLoadMediaItemsComplete()) { }
+                Playlist.setLoadMediaItemsComplete(false);
+                isLoadingSongs = false;
+                return LibraryResult.ofItemList(Playlist.getMediaItems(), params);
+            }, command -> new Thread(command).start());
+        }
 
-    private static class MusicSessionCallback implements MediaSession.Callback {
+        /*@OptIn(markerClass = UnstableApi.class)
+        @NonNull @Override
+        public ListenableFuture<LibraryResult<Void>> onSearch(@NonNull MediaLibrarySession session, @NonNull MediaSession.ControllerInfo browser, @NonNull String query, @Nullable LibraryParams params) {
+            int size = 0;
+            for(Song song : Playlist.getSongs())
+                if(song.getData().contains(query, false) && song.getMediaItem() != null)
+                    size++;
+            session.notifySearchResultChanged(browser, query, size, params);
+            return Futures.immediateFuture(LibraryResult.ofVoid(params));
+        }*/
+
+        @OptIn(markerClass = UnstableApi.class)
+        @NonNull @Override
+        public ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> onGetSearchResult(@NonNull MediaLibrarySession session, @NonNull MediaSession.ControllerInfo browser, @NonNull String query, int page, int pageSize, @Nullable LibraryParams params) {
+            ArrayList<MediaItem> results = new ArrayList<>();
+            for(Song song : Playlist.getSongs())
+                if(song.getData().contains(query, false) && song.getMediaItem() != null)
+                    results.add(song.getMediaItem());
+            return Futures.immediateFuture(LibraryResult.ofItemList(ImmutableList.copyOf(results), params));
+        }
 
         @OptIn(markerClass = UnstableApi.class)
         @NonNull @Override

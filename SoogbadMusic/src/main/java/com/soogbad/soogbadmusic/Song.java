@@ -3,7 +3,7 @@ package com.soogbad.soogbadmusic;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 
-import android.support.v4.media.MediaBrowserCompat;
+import androidx.media3.common.MediaItem;
 
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
@@ -19,7 +19,7 @@ public final class Song {
     private final File file;
     private long duration;
     private SongData data;
-    private MediaBrowserCompat.MediaItem mediaItem;
+    private MediaItem mediaItem;
 
     public Song(File file) {
         this.file = file;
@@ -77,7 +77,7 @@ public final class Song {
 
     public SongData getData() { return data; }
 
-    public MediaBrowserCompat.MediaItem getMediaItem() { return mediaItem; }
-    public void setMediaItem(MediaBrowserCompat.MediaItem mediaItem) { this.mediaItem = mediaItem; }
+    public MediaItem getMediaItem() { return mediaItem; }
+    public void setMediaItem(MediaItem mediaItem) { this.mediaItem = mediaItem; }
 
 }
