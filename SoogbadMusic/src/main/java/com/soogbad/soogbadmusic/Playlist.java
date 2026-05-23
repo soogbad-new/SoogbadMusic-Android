@@ -1,10 +1,10 @@
 package com.soogbad.soogbadmusic;
 
-import android.net.Uri;
+import android.os.Bundle;
 import android.os.Environment;
-
-import androidx.media3.common.MediaItem;
-import androidx.media3.common.MediaMetadata;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaDescriptionCompat;
+import android.support.v4.media.MediaMetadataCompat;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -79,12 +79,12 @@ public class Playlist {
         songs.sort(new SongComparator());
     }
 
-    private static ArrayList<MediaItem> mediaItems = null;
+    private static ArrayList<MediaBrowserCompat.MediaItem> mediaItems = null;
     private static Thread lastLoadMediaItemsThread = null;
     private static boolean loadMediaItemsComplete = false;
     private static boolean stopLastLoadMediaItems = false;
 
-    public static ArrayList<MediaItem> getMediaItems() { return mediaItems; }
+    public static ArrayList<MediaBrowserCompat.MediaItem> getMediaItems() { return mediaItems; }
     public static boolean getLoadMediaItemsComplete() { return loadMediaItemsComplete; }
     public static void setLoadMediaItemsComplete(boolean loadMediaItemsComplete) { Playlist.loadMediaItemsComplete = loadMediaItemsComplete; }
 
@@ -100,15 +100,19 @@ public class Playlist {
         lastLoadMediaItemsThread = new Thread(() -> {
             while((songs.isEmpty() || (lastRefreshSongsThread != null && lastRefreshSongsThread.isAlive())) && !stopLastLoadMediaItems) { }
             if(stopLastLoadMediaItems) return;
-            ArrayList<MediaItem> mediaItems = new ArrayList<>();
+            ArrayList<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
             for(Song song : songs) {
                 if(stopLastLoadMediaItems)
                     return;
                 song.loadAlbumCoverAndLyrics();
-                MediaMetadata metadata = new MediaMetadata.Builder().setDisplayTitle(song.getData().Title).setSubtitle(song.getData().Artist).setDescription(song.getData().Album)
+                /*MediaMetadata metadata = new MediaMetadata.Builder().setDisplayTitle(song.getData().Title).setSubtitle(song.getData().Artist).setDescription(song.getData().Album)
                         .setTitle(song.getData().Title).setArtist(song.getData().Artist).setAlbumTitle(song.getData().Album).setReleaseYear(song.getData().Year)
                         .setDurationMs(song.getDuration()).setIsPlayable(true).setIsBrowsable(false).build();
-                MediaItem mediaItem = new MediaItem.Builder().setMediaId(song.getPath()).setUri(Uri.fromFile(song.getFile())).setMediaMetadata(metadata).build();
+                MediaItem mediaItem = new MediaItem.Builder().setMediaId(song.getPath()).setUri(Uri.fromFile(song.getFile())).setMediaMetadata(metadata).build();*/
+                Bundle descriptionExtras = new Bundle();
+                descriptionExtras.putString(MediaMetadataCompat.METADATA_KEY_TITLE, song.getData().Title); descriptionExtras.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, song.getData().Artist); descriptionExtras.putString(MediaMetadataCompat.METADATA_KEY_ALBUM, song.getData().Album); descriptionExtras.putLong(MediaMetadataCompat.METADATA_KEY_YEAR, song.getData().Year); descriptionExtras.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, song.getDuration());
+                MediaDescriptionCompat description = new MediaDescriptionCompat.Builder().setMediaId(song.getFile().getAbsolutePath()).setTitle(song.getData().Title).setSubtitle(song.getData().Artist).setDescription(song.getData().Album).setIconBitmap(song.getData().AlbumCover).setExtras(descriptionExtras).build();
+                MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(description, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE);
                 song.setMediaItem(mediaItem);
                 mediaItems.add(mediaItem);
             }

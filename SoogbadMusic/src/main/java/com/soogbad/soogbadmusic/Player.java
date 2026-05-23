@@ -36,10 +36,10 @@ public class Player {
                 notifyCompletion();
             }
         });
-        if(song.getMediaItem() != null)
+        /*if(song.getMediaItem() != null)
             mediaPlayer.setMediaItem(song.getMediaItem());
         else
-            mediaPlayer.setMediaItem(MediaItem.fromUri(Uri.fromFile(song.getFile())));
+            */mediaPlayer.setMediaItem(MediaItem.fromUri(Uri.fromFile(song.getFile())));
         mediaPlayer.prepare();
     }
 
