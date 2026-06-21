@@ -5,7 +5,6 @@ import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.media.AudioDeviceCallback;
@@ -107,10 +106,8 @@ public class MainActivity extends AppCompatActivity {
         checkPermissions();
     }
     private void setWindowProperties() {
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.main_activity);
         setSupportActionBar(findViewById(R.id.toolbar));
-        getWindow().setStatusBarColor(Color.TRANSPARENT);
-        getWindow().setNavigationBarColor(Color.BLACK);
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.constraintLayout), this::onApplyWindowInsetsListener);

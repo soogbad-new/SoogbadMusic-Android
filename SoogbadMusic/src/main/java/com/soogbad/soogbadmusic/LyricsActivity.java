@@ -8,7 +8,6 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.ActionMode;
 import android.view.Menu;
@@ -25,11 +24,9 @@ public class LyricsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_lyrics);
+        setContentView(R.layout.lyrics_activity);
         setSupportActionBar(findViewById(R.id.lyricsToolbar));
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-        getWindow().setStatusBarColor(Color.TRANSPARENT);
-        getWindow().setNavigationBarColor(Color.BLACK);
         ConstraintLayout constraintLayout = findViewById(R.id.lyricsConstraintLayout);
         songNameTextView = findViewById(R.id.lyricsSongNameTextView); songInfoTextView = findViewById(R.id.lyricsSongInfoTextView); songLyricsTextView = findViewById(R.id.songLyrics);
         ViewCompat.setOnApplyWindowInsetsListener(constraintLayout, (view, insets) -> {

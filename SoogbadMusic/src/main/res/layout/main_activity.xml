@@ -63,7 +63,7 @@
 
     <include
         android:id="@+id/include"
-        layout="@layout/content_main"
+        layout="@layout/main_content"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
@@ -80,7 +80,6 @@
 
     <TextView
         android:id="@+id/songNameTextView"
-
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginLeft="10dp"
