@@ -5,9 +5,10 @@
     android:layout_height="match_parent"
     android:clipToPadding="false"
     android:fitsSystemWindows="false"
-    tools:background="@color/darkBlue"
+    android:background="@color/darkBlue"
     tools:context=".LyricsActivity"
-    android:keepScreenOn="true">
+    android:keepScreenOn="true"
+    tools:ignore="Overdraw">
 
 
     <com.google.android.material.appbar.MaterialToolbar
@@ -33,7 +34,7 @@
         android:id="@+id/lyricsContainerLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@color/lyricsContainer"
+        android:background="@color/veryDarkBlue"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/lyricsToolbar">
