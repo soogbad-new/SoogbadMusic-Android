@@ -35,7 +35,6 @@ import android.widget.TextView;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.content.res.AppCompatResources;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.core.app.ActivityCompat;
@@ -89,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
         constraintLayout = findViewById(R.id.constraintLayout); shuffleButton = findViewById(R.id.shuffleButton); filterButton = findViewById(R.id.filterButton); playPauseButton = findViewById(R.id.playPauseButton); previousButton = findViewById(R.id.previousButton); nextButton = findViewById(R.id.nextButton); songNameTextView = findViewById(R.id.songNameTextView); songInfoTextView = findViewById(R.id.songInfoTextView); currentTimeTextView = findViewById(R.id.currentTimeTextView); durationTextView = findViewById(R.id.durationTextView); albumCoverImageView = findViewById(R.id.albumCoverImageView); progressBarBackground = findViewById(R.id.progressBarBackground); progressBar = findViewById(R.id.progressBar); searchEditText = findViewById(R.id.searchEditText); advancedSearchButton = findViewById(R.id.advancedSearchButton); songList = findViewById(R.id.songList);
         playPauseButton.setEnabled(false); previousButton.setEnabled(false); nextButton.setEnabled(false); searchEditText.setEnabled(false);
         progressBarBackground.setOnTouchListener(onProgressBarTouchListener); progressBar.setOnTouchListener(onProgressBarTouchListener); progressBarBackground.setOnClickListener(onProgressBarClickListener); progressBar.setOnClickListener(onProgressBarClickListener);
+        filterButton.setImageTintList(ContextCompat.getColorStateList(this, PlaybackManager.getFilter() ? R.color.activeButton : R.color.white));
         defaultSearchbarBackground = searchEditText.getBackground();
         searchEditText.setOnTouchListener(this::onSearchEditTextTouch);
         searchEditText.addTextChangedListener(new TextWatcher() {
@@ -248,18 +248,12 @@ public class MainActivity extends AppCompatActivity {
     public void onShuffleButtonClick(View view) {
         searchEditTextClearFocus();
         PlaybackManager.setShuffle(!PlaybackManager.getShuffle());
-        if(PlaybackManager.getShuffle())
-            shuffleButton.setImageDrawable(AppCompatResources.getDrawable(this, R.drawable.shuffle_on));
-        else
-            shuffleButton.setImageDrawable(AppCompatResources.getDrawable(this, R.drawable.shuffle_off));
+        shuffleButton.setImageTintList(ContextCompat.getColorStateList(this, PlaybackManager.getShuffle() ? R.color.activeButton : R.color.white));
     }
     public void onFilterButtonClick(View view) {
         searchEditTextClearFocus();
         PlaybackManager.setFilter(!PlaybackManager.getFilter());
-        if(PlaybackManager.getFilter())
-            filterButton.setImageDrawable(AppCompatResources.getDrawable(this, R.drawable.filter_on));
-        else
-            filterButton.setImageDrawable(AppCompatResources.getDrawable(this, R.drawable.filter_off));
+        filterButton.setImageTintList(ContextCompat.getColorStateList(this, PlaybackManager.getFilter() ? R.color.activeButton : R.color.white));
         Playlist.refreshSongs();
     }
 
@@ -328,10 +322,7 @@ public class MainActivity extends AppCompatActivity {
     public void onAdvancedSearchButtonClick(View view) {
         searchEditTextClearFocus();
         advancedSearch = !advancedSearch;
-        if(advancedSearch)
-            advancedSearchButton.setImageDrawable(AppCompatResources.getDrawable(this, R.drawable.advanced_search_on));
-        else
-            advancedSearchButton.setImageDrawable(AppCompatResources.getDrawable(this, R.drawable.advanced_search_off));
+        advancedSearchButton.setImageTintList(ContextCompat.getColorStateList(this, advancedSearch ? R.color.activeButton : R.color.white));
         onSearchEditTextTextChanged(searchEditText.getText().toString());
     }
     public void onSearchEditTextLoseFocus(View view) {

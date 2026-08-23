@@ -35,7 +35,7 @@
                 android:layout_marginRight="17dp"
                 android:onClick="onFilterButtonClick"
                 android:scaleType="fitXY"
-                android:src="@drawable/filter_on"
+                android:src="@drawable/filter"
                 android:background="@android:color/transparent"
                 android:contentDescription="Filter" />
             <ImageButton
@@ -45,7 +45,7 @@
                 android:layout_marginRight="20dp"
                 android:onClick="onShuffleButtonClick"
                 android:scaleType="fitXY"
-                android:src="@drawable/shuffle_off"
+                android:src="@drawable/shuffle"
                 android:background="@android:color/transparent"
                 android:contentDescription="Shuffle" />
             <ImageButton
@@ -237,7 +237,7 @@
         android:layout_marginLeft="5dp"
         android:onClick="onAdvancedSearchButtonClick"
         android:scaleType="fitXY"
-        android:src="@drawable/advanced_search_off"
+        android:src="@drawable/advanced_search"
         android:background="@android:color/transparent"
         android:contentDescription="Advanced Search"
         app:layout_constraintRight_toRightOf="parent"
