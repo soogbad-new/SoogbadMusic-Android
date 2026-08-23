@@ -2,6 +2,7 @@
 <resources>
 
     <color name="appColor">#19967D</color>
+    <color name="colorAccent">#00B4AA</color>
 
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>

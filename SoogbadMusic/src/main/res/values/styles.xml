@@ -4,7 +4,7 @@
     <style name="AppTheme" parent="Theme.Material3.Dark.NoActionBar">
         <item name="colorPrimary">@color/lightBlue</item>
         <item name="colorPrimaryDark">@color/darkBlue</item>
-        <item name="colorAccent">@color/appColor</item>
+        <item name="colorAccent">@color/colorAccent</item>
         <item name="android:windowBackground">@color/veryDarkBlue</item>
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_icon_padding</item>
         <item name="android:windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
